@@ -1,173 +1,113 @@
-import React from 'react'
+import React from "react";
 
 const Footer = () => {
   return (
-    <div>
-  <footer className="bg-white pb-10 pt-4 sm:py-10 lg:py-12">
-  <div className="mx-auto max-w-screen-2xl px-4 md:px-8">
-    <div className="grid grid-cols-4 gap-12 border-t pt-10 md:grid-cols-3 lg:grid-cols-3 lg:grid-rows-4 lg:gap-8 lg:pt-12">
-      <div className="col-span-full lg:col-span-1 lg:row-span-2">
-        {/* logo - start */}
-        <div className="mb-4 lg:-mt-2">
-          <a
-            href="/"
-            className="inline-flex items-center gap-2 text-4xl font-bold text-black md:text-2xl"
-            aria-label="logo"
-          >
-            <img
-              src="/Exceliq logo.jpeg"
-              alt="logo"
-              width={95}
-              height={94}
-              viewBox="0 0 95 94"
-              className="h-auto w-5 text-indigo-500"
-              fill="currentColor"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              
-            </img>
-            Excel IQ
-          </a>
-        </div>
-        {/* logo - end */}
-        <p className="text-sm text-gray-500">
-          © 2021 - Present Excel IQ. All rights reserved.
-        </p>
-      </div>
-      {/* nav - start */}
-      <div>
-        <div className="mb-4 font-bold uppercase tracking-widest text-gray-800">
-          Products
-        </div>
-        <nav className="flex flex-col gap-4">
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              Overview
-            </a>
-          </div>
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              Solutions
-            </a>
-          </div>
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              Pricing
-            </a>
-          </div>
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              Customers
-            </a>
-          </div>
-        </nav>
-      </div>
-      {/* nav - end */}
-      {/* nav - start */}
-      <div>
-        <div className="mb-4 font-bold uppercase tracking-widest text-gray-800">
-          Company
-        </div>
-        <nav className="flex flex-col gap-4">
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              About
-            </a>
-          </div>
-         
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              Blog
-            </a>
-          </div>
-        </nav>
-      </div>
-      {/* nav - end */}
-      {/* nav - start */}
-      <div>
-        <div className="mb-4 font-bold uppercase tracking-widest text-gray-800">
-          Support
-        </div>
-        <nav className="flex flex-col gap-4">
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              Contact
-            </a>
-          </div>
-      
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              FAQ
-            </a>
-          </div>
-        </nav>
-      </div>
-      {/* nav - end */}
-      {/* nav - start */}
-      <div>
-        <div className="mb-4 font-bold uppercase tracking-widest text-gray-800">
-          Legal
-        </div>
-        <nav className="flex flex-col gap-4">
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              Terms of Service
-            </a>
-          </div>
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              Privacy Policy
-            </a>
-          </div>
-          <div>
-            <a
-              href="#"
-              className="text-gray-500 transition duration-100 hover:text-indigo-500 active:text-indigo-600"
-            >
-              Cookie settings
-            </a>
-          </div>
-        </nav>
-      </div>
-      {/* nav - end */}
-    </div>
-  </div>
-</footer>
+    <footer className="relative mt-32 bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-t border-indigo-100">
 
+      {/* Glow Background Effects */}
+      <div className="absolute -top-20 left-0 w-72 h-72 bg-indigo-500 opacity-10 blur-3xl rounded-full"></div>
+      <div className="absolute bottom-0 right-0 w-72 h-72 bg-purple-500 opacity-10 blur-3xl rounded-full"></div>
 
+      <div className="relative mx-auto max-w-screen-2xl px-6 md:px-10 py-16">
 
-   </div>
-  )
-}
+   <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-6">
 
-export default Footer
+          {/* Logo + About */}
+          <div className="lg:col-span-2">
+            <div className="flex items-center gap-3">
+              <img
+                src="/Exceliq logo.jpeg"
+                alt="logo"
+                className="w-10 h-10 rounded-lg"
+              />
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                Excel IQ
+              </h2>
+            </div>
+
+            <p className="mt-6 text-gray-600 leading-relaxed max-w-md">
+              AI-powered spreadsheet automation platform helping users generate
+              formulas, pivot tables, dashboards and data insights instantly.
+            </p>
+
+            <p className="mt-6 text-sm text-gray-500">
+              © {new Date().getFullYear()} Excel IQ. All rights reserved.
+            </p>
+          </div>
+
+          {/* Column Component */}
+          {[
+            {
+              title: "Product",
+              links: ["Overview", "Solutions", "Pricing", "Customers"],
+            },
+            {
+              title: "Company",
+              links: ["About", "Blog", "Careers"],
+            },
+            {
+              title: "Support",
+              links: ["Contact", "Help Center", "FAQ"],
+            },
+          ].map((section, index) => (
+            <div key={index}>
+              <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-slate-900">
+                {section.title}
+              </h3>
+
+              <ul className="space-y-4">
+                {section.links.map((link, i) => (
+                  <li key={i}>
+                    <a
+                      href="#"
+                      className="group text-gray-600 transition duration-300"
+                    >
+                      <span className="relative">
+                        {link}
+                        <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
+                      </span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          {/* Legal */}
+          <div>
+            <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-slate-900">
+              Legal
+            </h3>
+
+            <ul className="space-y-4">
+              {[
+                "Terms of Service",
+                "Privacy Policy",
+                "Cookie Settings",
+              ].map((item, i) => (
+                <li key={i}>
+                  <a
+                    href="#"
+                    className="group text-gray-600 transition duration-300"
+                  >
+                    <span className="relative">
+                      {item}
+                      <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Bottom Divider */}
+        <div className="mt-16 border-t border-indigo-100 pt-6 text-center text-sm text-gray-500">
+          Built with ❤️ for smarter Excel automation.
+        </div>
+      </div>
+    </footer>
+  );
+};
+
+export default Footer;
