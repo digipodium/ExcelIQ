@@ -30,7 +30,7 @@ export default function Navbar() {
             className="flex items-center gap-3 group"
           >
             <img
-              src="/Exceliq logo.jpeg"
+              src="/logo.png"
               alt="logo"
               className="w-10 h-10 rounded-lg shadow-md"
             />
