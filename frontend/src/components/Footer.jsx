@@ -31,7 +31,7 @@ const Footer = () => {
         </div>
         {/* logo - end */}
         <p className="text-sm text-gray-500">
-          © 2021 - Present Excel IQ. All rights reserved.
+          © 2021 - Present Excel IQ. All rights  reserved.
         </p>
       </div>
       {/* nav - start */}
