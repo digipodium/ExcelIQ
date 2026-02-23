@@ -10,7 +10,7 @@ const Footer = () => {
 
       <div className="relative mx-auto max-w-screen-2xl px-6 md:px-10 py-16">
 
-   <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-6">
+        <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-6">
 
           {/* Logo + About */}
           <div className="lg:col-span-2">
@@ -80,23 +80,21 @@ const Footer = () => {
             </h3>
 
             <ul className="space-y-4">
-              {[
-                "Terms of Service",
-                "Privacy Policy",
-                "Cookie Settings",
-              ].map((item, i) => (
-                <li key={i}>
-                  <a
-                    href="#"
-                    className="group text-gray-600 transition duration-300"
-                  >
-                    <span className="relative">
-                      {item}
-                      <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
-                    </span>
-                  </a>
-                </li>
-              ))}
+              {["Terms of Service", "Privacy Policy", "Cookie Settings"].map(
+                (item, i) => (
+                  <li key={i}>
+                    <a
+                      href="#"
+                      className="group text-gray-600 transition duration-300"
+                    >
+                      <span className="relative">
+                        {item}
+                        <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
+                      </span>
+                    </a>
+                  </li>
+                )
+              )}
             </ul>
           </div>
         </div>
