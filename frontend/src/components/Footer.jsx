@@ -1,3 +1,4 @@
+import Link from "next/link";
 import React from "react";
 
 const Footer = () => {
@@ -15,6 +16,10 @@ const Footer = () => {
           {/* Logo + About */}
           <div className="lg:col-span-2">
             <div className="flex items-center gap-3">
+              <Link
+                href="/"
+                className="flex items-center gap-3 group"
+              >
               <img
                 src="/logo.png"
                 alt="logo"
@@ -23,6 +28,7 @@ const Footer = () => {
               <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 Excel IQ
               </h2>
+              </Link>
             </div>
 
             <p className="mt-6 text-gray-600 leading-relaxed max-w-md">
