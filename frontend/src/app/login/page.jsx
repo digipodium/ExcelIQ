@@ -53,9 +53,7 @@ export default function Login() {
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-sm font-semibold text-slate-700">Password</label>
-              <Link href="#" className="text-sm font-medium text-indigo-600 hover:text-purple-600 transition-colors">
-                Forgot password?
-              </Link>
+             
             </div>
             <div className="relative">
               <input 
@@ -74,6 +72,11 @@ export default function Login() {
               />
               <span className="text-gray-600 font-medium">Remember me</span>
             </label>
+            <div className="ml-auto">
+               <Link href="#" className="text-sm font-medium text-indigo-600 hover:text-purple-600 transition-colors">
+                Forgot password?
+              </Link>
+              </div>
           </div>
 
           <button 
@@ -86,10 +89,13 @@ export default function Login() {
 
         <div className="mt-8 text-center text-sm text-gray-600 font-medium">
           Don't have an account?{" "}
+          
           <Link href="/signup" className="group relative text-indigo-600 transition duration-300">
             <span>Sign up</span>
             <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
           </Link>
+
+          
         </div>
 
       </div>
