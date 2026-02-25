@@ -45,11 +45,11 @@ const Footer = () => {
           {[
             {
               title: "Product",
-              links: ["Overview", "Solutions", "Pricing", "Customers"],
+              links: ["Overview",  "Pricing", "Customers"],
             },
             {
               title: "Company",
-              links: ["About", "Blog", "Careers"],
+              links: ["About", "Blog", ],
             },
             {
               title: "Support",
