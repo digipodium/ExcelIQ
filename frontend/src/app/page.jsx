@@ -2,6 +2,8 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Faq from "@/components/faq";
+import Contact from "./support/contact";
+import Blog from "@/components/Blog";
 
 export const Home = () => {
   return (
@@ -128,6 +130,14 @@ export const Home = () => {
       </div>
      
      <Faq/>
+
+<Blog/>
+
+     <Contact/>
+
+    
+    
+    
     </div>
   );
 };
