@@ -89,15 +89,15 @@ const Footer = () => {
               {["Terms of Service", "Privacy Policy", "Cookie Settings"].map(
                 (item, i) => (
                   <li key={i}>
-                    <a
-                      href="#"
+                    <Link
+                      href="/legal"
                       className="group text-gray-600 transition duration-300"
                     >
                       <span className="relative">
                         {item}
                         <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
                       </span>
-                    </a>
+                    </Link>
                   </li>
                 )
               )}
