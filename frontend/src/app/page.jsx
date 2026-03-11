@@ -63,7 +63,7 @@ export const Home = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 blur-3xl opacity-20 rounded-3xl"></div>
 
             <img
-              src="hero sectionexceliq.png"
+              src="/hero-section.PNG"
               alt="Excel IQ"
               className="relative rounded-3xl shadow-2xl hover:scale-105 transition duration-500"
             />
