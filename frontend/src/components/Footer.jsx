@@ -1,7 +1,42 @@
+"use client";
+
 import Link from "next/link";
 import React from "react";
 
 const Footer = () => {
+
+  const footerSections = [
+    {
+      title: "Product",
+      links: [
+        { name: "Overview", path: "/" },
+        { name: "Pricing", path: "/pricing" },
+        { name: "Customers", path: "/customers" },
+      ],
+    },
+    {
+      title: "Company",
+      links: [
+        { name: "About", path: "/company" },
+        { name: "Blog", path: "/blog" },
+      ],
+    },
+    {
+      title: "Support",
+      links: [
+        { name: "Contact", path: "/contact" },
+        { name: "Help Center", path: "/support" },
+        { name: "FAQ", path: "/faq" },
+      ],
+    },
+  ];
+
+  const legalLinks = [
+    { name: "Terms of Service", path: "/legal/terms" },
+    { name: "Privacy Policy", path: "/legal/privacy" },
+    { name: "Cookie Settings", path: "/legal/cookies" },
+  ];
+
   return (
     <footer className="relative mt-32 bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-t border-indigo-100">
 
@@ -15,11 +50,7 @@ const Footer = () => {
 
           {/* Logo + About */}
           <div className="lg:col-span-2">
-            <div className="flex items-center gap-3">
-              <Link
-                href="/"
-                className="flex items-center gap-3 group"
-              >
+            <Link href="/" className="flex items-center gap-3 group">
               <img
                 src="/logo.png"
                 alt="logo"
@@ -28,8 +59,7 @@ const Footer = () => {
               <h2 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 Excel IQ
               </h2>
-              </Link>
-            </div>
+            </Link>
 
             <p className="mt-6 text-gray-600 leading-relaxed max-w-md">
               AI-powered spreadsheet automation platform helping users generate
@@ -41,21 +71,8 @@ const Footer = () => {
             </p>
           </div>
 
-          {/* Column Component */}
-          {[
-            {
-              title: "Product",
-              links: ["Overview",  "Pricing", "Customers"],
-            },
-            {
-              title: "Company",
-              links: ["About", "Blog", ],
-            },
-            {
-              title: "Support",
-              links: ["Contact", "Help Center", "FAQ"],
-            },
-          ].map((section, index) => (
+          {/* Dynamic Footer Sections */}
+          {footerSections.map((section, index) => (
             <div key={index}>
               <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-slate-900">
                 {section.title}
@@ -64,51 +81,51 @@ const Footer = () => {
               <ul className="space-y-4">
                 {section.links.map((link, i) => (
                   <li key={i}>
-                    <a
-                      href="#"
+                    <Link
+                      href={link.path}
                       className="group text-gray-600 transition duration-300"
                     >
                       <span className="relative">
-                        {link}
+                        {link.name}
                         <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
                       </span>
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
           ))}
 
-          {/* Legal */}
+          {/* Legal Section */}
           <div>
             <h3 className="mb-6 text-sm font-semibold uppercase tracking-wider text-slate-900">
               Legal
             </h3>
 
             <ul className="space-y-4">
-              {["Terms of Service", "Privacy Policy", "Cookie Settings"].map(
-                (item, i) => (
-                  <li key={i}>
-                    <Link
-                      href="/legal"
-                      className="group text-gray-600 transition duration-300"
-                    >
-                      <span className="relative">
-                        {item}
-                        <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
-                      </span>
-                    </Link>
-                  </li>
-                )
-              )}
+              {legalLinks.map((item, i) => (
+                <li key={i}>
+                  <Link
+                    href={item.path}
+                    className="group text-gray-600 transition duration-300"
+                  >
+                    <span className="relative">
+                      {item.name}
+                      <span className="absolute left-0 -bottom-1 h-[2px] w-0 bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
+                    </span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
+
         </div>
 
         {/* Bottom Divider */}
         <div className="mt-16 border-t border-indigo-100 pt-6 text-center text-sm text-gray-500">
           Built with ❤️ for smarter Excel automation.
         </div>
+
       </div>
     </footer>
   );
