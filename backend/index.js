@@ -6,6 +6,15 @@ const port = 5000;
 app.use(express.json());
 app.use('/user', UserRouter);
 
+app.get('/', (req, res) => {
+  res.send('response from express');
+});
+
+app.use('/user', UserRouter);
+//adding a new route
+app.get('/add', (req, res) => {
+  res.send('response from add route');
+});
 
 app.listen(port, () => {
   console.log(`Server started ${port}`);
