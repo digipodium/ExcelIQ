@@ -38,7 +38,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="relative mt-32 bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-t border-indigo-100">
+    <footer className="relative mt-0 bg-gradient-to-br from-slate-50 via-white to-indigo-50 border-t border-indigo-100">
 
       {/* Glow Background Effects */}
       <div className="absolute -top-20 left-0 w-72 h-72 bg-indigo-500 opacity-10 blur-3xl rounded-full"></div>
