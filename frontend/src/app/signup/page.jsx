@@ -69,6 +69,16 @@ export default function Signup() {
               />
             </div>
           </div>
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5"> Confirm Password</label>
+            <div className="relative">
+              <input 
+                type="password" 
+                placeholder="Create a strong password" 
+                className="w-full px-4 py-3 bg-slate-50 border border-gray-200 rounded-xl text-slate-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-300 pr-10"
+              />
+            </div>
+          </div>
 
           {/* Checkbox */}
           <div className="flex items-start pt-2">
