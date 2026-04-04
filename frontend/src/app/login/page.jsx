@@ -14,10 +14,13 @@ const Login = () => {
     },
     onSubmit: (values) => {
       console.log(values);
+
       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/user/authenticate`, values)
         .then((response) => {
           toast.success('login sucessfully');
           console.log(response.data);
+          const {token} = response.data;
+          localStorage.setItem('token', token);
         })
         .catch((err) => {
           console.log(err);
