@@ -131,7 +131,7 @@ router.post("/forgot-password", async (req, res) => {
 });
 
 // reset password
-router.post("/reset-password/:token", async (req, res) => {
+router.post("/user/reset-password/:token", async (req, res) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
@@ -157,4 +157,6 @@ router.post("/reset-password/:token", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+
+
 module.exports = router;
