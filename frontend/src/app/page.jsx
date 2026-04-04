@@ -4,10 +4,13 @@ import { motion } from "framer-motion";
 import Faq from "./faq/page";
 import Contact from "./support/contact";
 import Blog from "./blog/page";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export const Home = () => {
   return (
     <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+      <Navbar/>
 
       {/* Animated Background Blobs */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500 opacity-20 rounded-full blur-3xl animate-pulse"></div>
@@ -134,12 +137,15 @@ export const Home = () => {
 <Blog/>
 
      <Contact/>
+     <Footer/>
 
     
     
     
     </div>
   );
+  
 };
+
 
 export default Home;
