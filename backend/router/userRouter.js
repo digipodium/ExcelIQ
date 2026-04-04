@@ -112,7 +112,7 @@ router.post("/forgot-password", async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: "ExcelIQ Support",
+      from: "ExcelIQ security ",
       to: email,
       subject: "Reset your password",
       html: `
