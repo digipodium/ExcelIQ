@@ -22,7 +22,7 @@ export default function ResetPassword() {
       setLoading(true);
 
       const res = await fetch(
-        `http://localhost:5000/user/reset-password/${token}`,
+        "http://localhost:5000/user/reset-password",
         {
           method: "POST",
           headers: {
