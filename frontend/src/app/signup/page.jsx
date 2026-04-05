@@ -28,24 +28,36 @@ export default function Signup() {
     },
     validationSchema: signupSchema,
     onSubmit: async (values) => {
-      console.log(values);
-      try {
-        const res = await axios.post('http://localhost:5000/user/add', values);
-        console.log(res.status);
-        if (res.status === 200) {
-          toast.success('Signup successful!');
-        } else {
-          toast.error('Signup failed. Please try again.');
-        }
-      } catch (error) {
-        if (error.response?.data?.code === 11000 || error.response?.status === 409) {
-          toast.error('You are already registered, please sign in');
-        } else {
-          toast.error('An error occurred. Please try again.');
-        }
-        console.error(error);
+  console.log(values);
+  try {
+    const res = await axios.post('http://localhost:5000/user/add', values);
+    console.log(res.status);
+
+    if (res.status === 200) {
+      toast.success('Signup successful!');
+
+      // If your API returns a token after signup
+      const token = res.data.token; // check if your API sends token
+      if (token) {
+        localStorage.setItem('token', token);
       }
+
+      // Redirect to dashboard
+      window.location.href = '/Home'; // simple redirect
+      // OR, if using Next.js app router with useRouter:
+      // router.push('/dashboard');
+    } else {
+      toast.error('Signup failed. Please try again.');
     }
+  } catch (error) {
+    if (error.response?.data?.code === 11000 || error.response?.status === 409) {
+      toast.error('You are already registered, please sign in');
+    } else {
+      toast.error('An error occurred. Please try again.');
+    }
+    console.error(error);
+  }
+}
   });
 
   return (

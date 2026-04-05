@@ -3,34 +3,32 @@ import React from 'react';
 import axios from 'axios';
 import { useFormik } from 'formik';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; // ← Add this
 import toast from 'react-hot-toast';
 
 const Login = () => {
-  // Logic from login
-  const loginForm = useFormik({
-    initialValues: {
-      email: '',
-      password: '',
-    },
-    onSubmit: (values) => {
-      console.log(values);
+  const router = useRouter(); // ← Initialize router
 
+  const loginForm = useFormik({
+    initialValues: { email: '', password: '' },
+    onSubmit: (values) => {
       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/user/authenticate`, values)
         .then((response) => {
-          toast.success('login sucessfully');
-          console.log(response.data);
-          const {token} = response.data;
+          toast.success('Login successfully');
+          const { token } = response.data;
           localStorage.setItem('token', token);
+
+          // Redirect to dashboard
+          router.push('/Home'); // ← Redirect after login
         })
         .catch((err) => {
-          console.log(err);
           if (err.response && err.response.status === 403) {
-            toast.error(err?.response?.data?.message);
+            toast.error(err.response.data.message);
           } else {
-            toast.error('some error occured');
+            toast.error('Some error occurred');
           }
         });
-    }
+    },
   });
 
   return (
@@ -130,5 +128,6 @@ const Login = () => {
     </div>
     </>
   );
-}
+};
+
 export default Login;
