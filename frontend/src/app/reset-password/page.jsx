@@ -1,100 +1,125 @@
 "use client";
-import { useParams, useRouter } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
-export default function ResetPassword() {
-  const { token } = useParams();
+export default function VerifyOtp() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email");
 
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleChange = (value, index) => {
+    if (!/^[0-9]*$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < 5) {
+      document.getElementById(`otp-${index + 1}`).focus();
+    }
+  };
+
+  const verifyOtp = async (e) => {
     e.preventDefault();
 
-    if (password !== confirm) {
-      alert("Passwords do not match");
+    const enteredOtp = otp.join("");
+
+    if (enteredOtp.length !== 6) {
+      setMessage("Please enter complete OTP");
       return;
     }
 
-    try {
-      setLoading(true);
+    setLoading(true);
+    setMessage("");
 
+    try {
       const res = await fetch(
-        "http://localhost:5000/user/reset-password",
+        "http://localhost:5000/user/verify-otp",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ password }),
+          body: JSON.stringify({
+            email,
+            otp: enteredOtp,
+          }),
         }
       );
 
       const data = await res.json();
-      alert(data.message || "Password updated successfully");
 
-      router.push("/login");
+      if (res.ok) {
+        setMessage("OTP verified successfully");
+
+        // redirect after 1 sec
+        setTimeout(() => {
+          router.push("/Dashboard");
+        }, 1000);
+
+      } else {
+        setMessage(data.message || "Invalid OTP");
+      }
 
     } catch (error) {
-      console.error(error);
-      alert("Something went wrong");
-    } finally {
-      setLoading(false);
+      setMessage("Server error");
     }
+
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-      <div className="w-[420px] bg-white rounded-3xl shadow-xl p-8">
-        
-        <h2 className="text-3xl font-bold text-center text-gray-800">
-          Reset Password
+    <div className="min-h-screen bg-[#cfc8a8] flex items-center justify-center">
+      <div className="bg-white w-[420px] rounded-[28px] shadow-xl p-8">
+
+        <h2 className="text-center text-blue-500 text-xl font-semibold">
+          Enter OTP send to your email
         </h2>
 
-        <p className="text-center text-gray-500 mt-2 mb-6">
-          Enter your new password
+        <p className="text-center text-gray-400 text-sm">
+          {email}
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          <div>
-            <label className="text-sm text-gray-600">New Password</label>
-            <input
-              type="password"
-              placeholder="Enter new password"
-              className="w-full mt-1 p-3 rounded-xl border bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+        <form onSubmit={verifyOtp}>
+
+          <div className="flex justify-between mt-6 mb-4">
+            {otp.map((digit, index) => (
+              <input
+                key={index}
+                id={`otp-${index}`}
+                type="text"
+                maxLength="1"
+                value={digit}
+                onChange={(e) =>
+                  handleChange(e.target.value, index)
+                }
+                className="w-12 h-14 border rounded-xl text-center"
+              />
+            ))}
           </div>
 
-          <div>
-            <label className="text-sm text-gray-600">Confirm Password</label>
-            <input
-              type="password"
-              placeholder="Confirm password"
-              className="w-full mt-1 p-3 rounded-xl border bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-            />
-          </div>
+          {message && (
+            <p className="text-center text-sm mb-3 text-red-500">
+              {message}
+            </p>
+          )}
 
           <button
             disabled={loading}
-            className="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold p-3 rounded-xl shadow-md hover:opacity-90 transition flex items-center justify-center gap-2"
+            className="w-full bg-blue-500 text-white py-3 rounded-xl flex justify-center"
           >
-            {loading && (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              "Verify Code"
             )}
-
-            {loading ? "Updating..." : "Reset Password"}
           </button>
-        </form>
 
+        </form>
       </div>
     </div>
   );

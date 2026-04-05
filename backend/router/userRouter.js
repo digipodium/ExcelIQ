@@ -83,6 +83,8 @@ router.post('/authenticate',(req,res)=>{
 
 const nodemailer = require("nodemailer");
 
+
+// ================= FORGOT PASSWORD (SEND OTP) =================
 router.post("/forgot-password", async (req, res) => {
   try {
     const { email } = req.body;
@@ -93,14 +95,13 @@ router.post("/forgot-password", async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const token = crypto.randomBytes(32).toString("hex");
+    // generate 6 digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    user.resetToken = token;
-    user.resetTokenExpire = Date.now() + 3600000;
+    user.resetOtp = otp;
+    user.otpExpire = Date.now() + 5 * 60 * 1000; // 5 min
 
     await user.save();
-
-    const resetLink = `http://localhost:3000/reset-password/${token}`;
 
     // email sender
     const transporter = nodemailer.createTransport({
@@ -112,17 +113,18 @@ router.post("/forgot-password", async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: "ExcelIQ security ",
+      from: "ExcelIQ Security",
       to: email,
-      subject: "Reset your password",
+      subject: "Password Reset OTP",
       html: `
-        <h3>Reset Password</h3>
-        <p>Click below link to reset password</p>
-        <a href="${resetLink}">${resetLink}</a>
+        <h2>Password Reset OTP</h2>
+        <p>Your OTP is:</p>
+        <h1>${otp}</h1>
+        <p>This OTP will expire in 5 minutes</p>
       `,
     });
 
-    res.json({ message: "Reset link sent to email" });
+    res.json({ message: "OTP sent to your email" });
 
   } catch (error) {
     console.log(error);
@@ -130,24 +132,31 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-// reset password
-router.post("/user/reset-password/:token", async (req, res) => {
-  try {
-    const { token } = req.params;
-    const { password } = req.body;
 
-    const user = await Model.findOne({
-      resetToken: token,
-      resetTokenExpire: { $gt: Date.now() },
-    });
+
+// ================= RESET PASSWORD USING OTP =================
+router.post("/reset-password-otp", async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+
+    const user = await Model.findOne({ email });
 
     if (!user) {
-      return res.status(400).json({ message: "Invalid or expired token" });
+      return res.status(404).json({ message: "User not found" });
     }
 
+    if (user.resetOtp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (user.otpExpire < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    // update password
     user.password = password;
-    user.resetToken = undefined;
-    user.resetTokenExpire = undefined;
+    user.resetOtp = undefined;
+    user.otpExpire = undefined;
 
     await user.save();
 
@@ -157,6 +166,36 @@ router.post("/user/reset-password/:token", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+// ================= VERIFY OTP ONLY =================
+router.post("/verify-otp", async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const user = await Model.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.resetOtp !== otp) {
+      return res.status(400).json({ message: "Invalid OTP" });
+    }
+
+    if (user.otpExpire < Date.now()) {
+      return res.status(400).json({ message: "OTP expired" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "OTP verified successfully"
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 
 
 module.exports = router;

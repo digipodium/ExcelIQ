@@ -1,74 +1,72 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ForgotPassword() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
+  const sendOtp = async (e) => {
+    e.preventDefault();
     setLoading(true);
 
-    const res = await fetch("http://localhost:5000/user/forgot-password", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email }),
-    });
+    try {
+      const res = await fetch(
+        "http://localhost:5000/user/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
+        }
+      );
 
-    const text = await res.text();
-    const data = JSON.parse(text);
-    alert(data.message || "Reset link sent to your email ");
+      const data = await res.json();
+      alert(data.message);
 
-  } catch (error) {
-    console.error(error);
-    alert("Something went wrong");
-  } finally {
+      if (res.ok) {
+        router.push(`/reset-password?email=${email}`);
+      }
+    } catch (err) {
+      alert("Something went wrong");
+    }
+
     setLoading(false);
-  }
-};
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-      <div className="w-[420px] bg-white rounded-3xl shadow-xl p-8">
-        
-        <h2 className="text-3xl font-bold text-center text-gray-800">
-          Forgot Password
+    <div className="min-h-screen bg-[#cfc8a8] flex items-center justify-center">
+      <div className="bg-white w-[420px] rounded-[28px] shadow-xl p-8 relative">
+
+        <h2 className="text-center text-blue-500 text-xl font-semibold mt-4">
+          Reset your password
         </h2>
 
-        <p className="text-center text-gray-500 mt-2 mb-6">
-          Enter your email to receive reset link
-        </p>
+        <form onSubmit={sendOtp} className="mt-6">
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          
-          <div>
-            <label className="text-sm text-gray-600">Email</label>
-            <input
-              type="email"
-              placeholder="you@example.com"
-              className="w-full mt-1 p-3 rounded-xl border bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
+          <input
+            type="email"
+            placeholder="Enter your ExcelIQ email"
+            className="w-full h-14 px-4 border rounded-xl"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
 
           <button
             disabled={loading}
-            className="w-full mt-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold p-3 rounded-xl shadow-md hover:opacity-90 transition flex items-center justify-center gap-2"
+            className="w-full mt-5 bg-blue-500 text-white py-3 rounded-xl flex items-center justify-center"
           >
-            {loading && (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            {loading ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+            ) : (
+              "Send Code"
             )}
-
-            {loading ? "Sending..." : "Send Reset Link"}
           </button>
-        </form>
 
+        </form>
       </div>
     </div>
   );
