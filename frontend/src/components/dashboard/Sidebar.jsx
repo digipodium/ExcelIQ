@@ -16,7 +16,7 @@ export default function Sidebar({ activeTab, onTabChange }) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-[#0f172a] text-slate-300">
       <div className="px-6 pt-8 pb-10">
-        <Link href="/" className="flex items-center gap-3">
+        <Link href="" className="flex items-center gap-3">
           <img
             src="/logo.png"
             alt="Excel IQ"
