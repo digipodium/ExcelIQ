@@ -7,80 +7,19 @@ export default function ResetPassword() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
 
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [timer, setTimer] = useState(60);
 
-  // countdown timer
-  useEffect(() => {
-    if (timer === 0) return;
-
-    const interval = setInterval(() => {
-      setTimer((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  const handleChange = (value, index) => {
-    if (!/^[0-9]*$/.test(value)) return;
-
-    const newOtp = [...otp];
-    newOtp[index] = value;
-    setOtp(newOtp);
-
-    if (value && index < 5) {
-      document.getElementById(`otp-${index + 1}`).focus();
-    }
-  };
-
-  // RESEND OTP
-  const resendOtp = async () => {
-    try {
-      setTimer(60);
-
-      await fetch("http://localhost:5000/user/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      });
-
-      setMessage("New OTP sent to email");
-
-    } catch (error) {
-      setMessage("Failed to resend OTP");
-    }
-  };
-
-  // SUBMIT
+  // ✅ handleSubmit MUST BE HERE
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const enteredOtp = otp.join("");
-
-    if (enteredOtp.length !== 6) {
-      setMessage("Enter complete OTP");
+    if (otp.length !== 6) {
+      setMessage("Enter valid OTP");
       return;
     }
-
-    if (!password) {
-      setMessage("Enter new password");
-      return;
-    }
-
-    if (password !== confirm) {
-      setMessage("Passwords do not match");
-      return;
-    }
-
-    setLoading(true);
-    setMessage("");
 
     try {
       const res = await fetch(
@@ -92,7 +31,7 @@ export default function ResetPassword() {
           },
           body: JSON.stringify({
             email,
-            otp: enteredOtp,
+            otp,
             password,
           }),
         }
@@ -101,119 +40,49 @@ export default function ResetPassword() {
       const data = await res.json();
 
       if (res.ok) {
-        setMessage("Password reset successful");
-
-        setTimeout(() => {
-          router.push("/login");
-        }, 1200);
-
+        router.push("/login"); // change if needed
       } else {
         setMessage(data.message);
       }
-
-    } catch (error) {
+    } catch (err) {
       setMessage("Server error");
     }
-
-    setLoading(false);
   };
 
+  // ✅ RETURN AFTER FUNCTION
   return (
-    <div className="min-h-screen bg-[#cfc8a8] flex items-center justify-center">
-
-      <div className="bg-white w-[440px] rounded-[30px] shadow-xl p-8">
-
-        <h2 className="text-center text-blue-500 text-lg font-semibold">
-          ExcelIQ Security
+    <div className="min-h-screen bg-[#0b0f1a] flex items-center justify-center p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="bg-slate-900 p-8 rounded-xl border border-slate-800 w-96 shadow-2xl"
+      >
+        <h2 className="text-2xl text-cyan-500 font-bold mb-2 text-center">
+          Verify OTP
         </h2>
 
-        <p className="text-center text-gray-400 text-sm mb-4">
-          Reset your password
-        </p>
+        <input
+          type="text"
+          maxLength="6"
+          placeholder="Enter OTP"
+          onChange={(e) => setOtp(e.target.value)}
+          className="w-full p-3 bg-slate-800 text-white rounded-lg mb-3"
+        />
 
-        <form onSubmit={handleSubmit}>
+        <input
+          type="password"
+          placeholder="New Password"
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full p-3 bg-slate-800 text-white rounded-lg mb-3"
+        />
 
-          {/* OTP BOXES */}
-          <div className="flex justify-between mb-4">
-            {otp.map((digit, index) => (
-              <input
-                key={index}
-                id={`otp-${index}`}
-                type="text"
-                maxLength="1"
-                value={digit}
-                onChange={(e) =>
-                  handleChange(e.target.value, index)
-                }
-                className="w-12 h-14 border rounded-xl text-center text-lg"
-              />
-            ))}
-          </div>
+        {message && (
+          <p className="text-red-400 text-sm text-center">{message}</p>
+        )}
 
-          {/* PASSWORD */}
-          <div className="relative mb-3">
-            <input
-              type={show ? "text" : "password"}
-              placeholder="New Password"
-              className="w-full p-3 border rounded-xl"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-
-            <span
-              onClick={() => setShow(!show)}
-              className="absolute right-4 top-3 cursor-pointer text-sm"
-            >
-              {show ? "Hide" : "Show"}
-            </span>
-          </div>
-
-          {/* CONFIRM PASSWORD */}
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            className="w-full p-3 border rounded-xl mb-3"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value)}
-          />
-
-          {/* TIMER */}
-          <div className="text-center text-sm text-gray-500 mb-2">
-            {timer > 0 ? (
-              <>Resend OTP in {timer}s</>
-            ) : (
-              <button
-                type="button"
-                onClick={resendOtp}
-                className="text-blue-600 font-medium"
-              >
-                Resend OTP
-              </button>
-            )}
-          </div>
-
-          {/* MESSAGE */}
-          {message && (
-            <p className="text-center text-sm text-red-500 mb-3">
-              {message}
-            </p>
-          )}
-
-          {/* BUTTON */}
-          <button
-            disabled={loading}
-            className="w-full bg-blue-500 text-white py-3 rounded-xl flex justify-center"
-          >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-            ) : (
-              "Reset Password"
-            )}
-          </button>
-
-        </form>
-
-      </div>
+        <button className="w-full py-2 bg-cyan-500 rounded-lg">
+          Confirm Reset
+        </button>
+      </form>
     </div>
   );
 }
