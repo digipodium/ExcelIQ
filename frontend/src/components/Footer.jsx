@@ -9,9 +9,9 @@ const Footer = () => {
     {
       title: "Product",
       links: [
-        { name: "Overview", path: "/" },
-        { name: "Pricing", path: "/pricing" },
-        { name: "Customers", path: "/customers" },
+        { name: "Overview", path: "/footerpages/Overview" },
+        { name: "Pricing", path: "/footerpages/Pricing" },
+        { name: "Customers", path: "/footerpages/Customers" },
       ],
     },
     {
