@@ -15,11 +15,10 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed w-full z-50 transition-all duration-300 ${
-        scrolled
+      className={`fixed w-full z-50 transition-all duration-300 ${scrolled
           ? "backdrop-blur-xl bg-white/70 shadow-lg"
           : "bg-transparent"
-      }`}
+        }`}
     >
       <div className="mx-auto max-w-screen-2xl px-6 md:px-10">
         <div className="flex items-center justify-between py-4">
@@ -42,13 +41,18 @@ export default function Navbar() {
 
           {/* Nav Links */}
           <nav className="hidden lg:flex items-center gap-10">
-            {["Product", "Pricing", "About", "Contact"].map((item, index) => (
+            {[
+              { name: "Product", path: "/overview" },
+              { name: "Pricing", path: "/pricing" },
+              { name: "About", path: "/about" },
+              { name: "Contact", path: "/contact" },
+            ].map((item, index) => (
               <Link
                 key={index}
-                href="#"
+                href={item.path}
                 className="relative text-gray-700 font-medium transition duration-300 group"
               >
-                {item}
+                {item.name}
                 <span className="absolute left-0 -bottom-1 w-0 h-[2px] bg-gradient-to-r from-indigo-600 to-purple-600 transition-all duration-300 group-hover:w-full"></span>
               </Link>
             ))}

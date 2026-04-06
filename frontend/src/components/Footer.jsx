@@ -9,9 +9,9 @@ const Footer = () => {
     {
       title: "Product",
       links: [
-        { name: "Overview", path: "/footerpages/Overview" },
-        { name: "Pricing", path: "/footerpages/Pricing" },
-        { name: "Customers", path: "/footerpages/Customers" },
+        { name: "Overview", path: "/overview" },
+        { name: "Pricing", path: "/pricing" },
+        { name: "Customers", path: "/customers" },
       ],
     },
     {
@@ -25,16 +25,16 @@ const Footer = () => {
       title: "Support",
       links: [
         { name: "Contact", path: "/contact" },
-        { name: "Help Center", path: "/support" },
+        { name: "Help Center", path: "/helpcenter" },
         { name: "FAQ", path: "/faq" },
       ],
     },
   ];
 
   const legalLinks = [
-    { name: "Terms of Service", path: "/legal/terms" },
-    { name: "Privacy Policy", path: "/legal/privacy" },
-    { name: "Cookie Settings", path: "/legal/cookies" },
+    { name: "Terms of Service", path: "/termsofservices" },
+    { name: "Privacy Policy", path: "/privacypolicy" },
+    { name: "Cookie Settings", path: "/cookies" },
   ];
 
   return (

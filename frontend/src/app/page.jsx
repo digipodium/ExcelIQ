@@ -1,7 +1,7 @@
 'use client';
 import React from "react";
 import { motion } from "framer-motion";
-import Faq from "./faq/page";
+import Faq from "./(homepages)/faq/page";
 import Contact from "./support/contact";
 import Blog from "./blog/page";
 import Navbar from "@/components/Navbar";
@@ -46,8 +46,10 @@ export const Home = () => {
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
-              <button className="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xl hover:scale-105 hover:shadow-2xl transition duration-300">
+              <button href="/login" className="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xl hover:scale-105 hover:shadow-2xl transition duration-300">
+                
                 Start Now
+
               </button>
 
               <button className="px-8 py-3 rounded-xl border border-gray-300 hover:border-indigo-600 hover:text-indigo-600 transition duration-300">

@@ -192,7 +192,7 @@ export default function Signup() {
               required
             />
             <label htmlFor="terms" className="text-xs text-gray-500 leading-snug font-medium cursor-pointer">
-              I accept the <Link href="/legal" className="text-blue-600 hover:text-indigo-600 transition-colors font-semibold">terms</Link> and <Link href="/legal" className="text-blue-600 hover:text-indigo-600 transition-colors font-semibold">privacy policy</Link>.
+              I accept the <Link href="/termsofservices" className="text-blue-600 hover:text-indigo-600 transition-colors font-semibold">terms</Link> and <Link href="/privacypolicy" className="text-blue-600 hover:text-indigo-600 transition-colors font-semibold">privacy policy</Link>.
             </label>
           </div>
 
