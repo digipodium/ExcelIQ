@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ResetPassword() {
+export  function ResetPassword() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
@@ -85,4 +85,14 @@ export default function ResetPassword() {
       </form>
     </div>
   );
+}
+
+export default function VerifyOtpPageWrapper() {
+    return (
+        <Suspense fallback={<div className='min-h-screen bg-[#0b0f1a] flex items-center justify-center text-white text-xl'>
+            Loading...
+        </div>}>
+            <VerifyOTP />
+        </Suspense>
+    );
 }
