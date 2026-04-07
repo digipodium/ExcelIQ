@@ -5,6 +5,8 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import axios from "axios";
 import toast from "react-hot-toast";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 const signupSchema = Yup.object().shape({
   name: Yup.string().required('Name is required').min(3, 'Name must be at least 3 characters'),
@@ -61,7 +63,11 @@ export default function Signup() {
   });
 
   return (
+
+   
     <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-blue-200 px-4 pt-20 pb-6 overflow-hidden font-sans">
+
+      
 
       {/* Animated Background Blobs */}
       <div className="absolute top-10 right-10 w-96 h-96 bg-blue-500 opacity-20 rounded-full blur-[100px] animate-pulse"></div>
@@ -213,6 +219,9 @@ export default function Signup() {
           </Link>
         </div>
       </div>
+
+      
     </div>
+     
   );
 }

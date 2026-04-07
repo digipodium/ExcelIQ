@@ -5,6 +5,8 @@ import { useFormik } from 'formik';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // ← Add this
 import toast from 'react-hot-toast';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 const Login = () => {
   const router = useRouter(); // ← Initialize router
@@ -32,7 +34,10 @@ const Login = () => {
   });
 
   return (
+
+  
     <>
+    <Navbar />
     <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-blue-200 px-4 pt-20 pb-6 overflow-hidden font-sans">
       
       {/* Background Decorations */}
@@ -126,8 +131,13 @@ const Login = () => {
 
       </div>
     </div>
+
+    <Footer />
     </>
   );
+
+  
 };
+
 
 export default Login;
