@@ -1,15 +1,20 @@
 'use client';
 import React from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import Faq from "./(main)/faq/page";
 import Contact from "./(main)/support/contact";
 import Blog from "./(main)/blog/page";
-// import Navbar from "@/components/Navbar";
-// import Footer from "@/components/Footer";
+import Navbar from "./(main)/Navbar";
+import Footer from "@/components/Footer";
+
 
 export const Home = () => {
   return (
+
     <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50">
+
+      <Navbar />
       
 
       {/* Animated Background Blobs */}
@@ -46,15 +51,17 @@ export const Home = () => {
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-4">
-              <button href="/login" className="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xl hover:scale-105 hover:shadow-2xl transition duration-300">
-                
-                Start Now
+              <Link href="/signup">
+                <button className="px-8 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-xl hover:scale-105 hover:shadow-2xl transition duration-300">
+                  Start Now
+                </button>
+              </Link>
 
-              </button>
-
+<Link href="/Tour">
               <button className="px-8 py-3 rounded-xl border border-gray-300 hover:border-indigo-600 hover:text-indigo-600 transition duration-300">
                 Take Tour
               </button>
+              </Link>
             </div>
           </motion.div>
 
@@ -128,9 +135,13 @@ export const Home = () => {
             </span>
           </div>
 
+          <Link href="/signup">
+
           <button className="bg-slate-900 text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-indigo-600 hover:scale-105 transition duration-300 shadow-xl">
             GET STARTED →
           </button>
+
+          </Link>
         </motion.div>
       </div>
      
@@ -140,7 +151,7 @@ export const Home = () => {
 
      <Contact/>
      
-
+<Footer/>
     
     
     

@@ -1,6 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import CookieSettings from "./(main)/cookies/page";
 
 
 
@@ -30,7 +31,7 @@ export default function RootLayout({ children }) {
         {children}
 
 
-
+<CookieSettings />
       </body>
     </html>
   );

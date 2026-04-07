@@ -3,7 +3,7 @@ import React from 'react'
 const Company = () => {
     return (
 
-        <div>
+        <div className="relative overflow-hidden bg-gradient-to-br from-slate-200 via-white to-indigo-200 py-16">
             {/*About Section */}
             <section id="about" className="scroll-mt-32 max-w-4xl mx-auto">
                 <div className="text-center mb-12">
@@ -11,13 +11,13 @@ const Company = () => {
                         About <span className="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Excel IQ</span>
                     </h1>
                     <p className="text-lg text-gray-600 leading-relaxed">
-                        [cite_start]ExcelIQ is proposed as a web-based AI platform that enables users to perform Excel-related tasks through natural language without relying on Excel add-ins[cite: 9]. [cite_start]The project aims to make spreadsheet intelligence accessible, efficient, and intuitive for users of all skill levels[cite: 12].
+                        ExcelIQ is proposed as a web-based AI platform that enables users to perform Excel-related tasks through natural language without relying on Excel add-ins[cite: 9]. [cite_start]The project aims to make spreadsheet intelligence accessible, efficient, and intuitive for users of all skill levels[cite: 12].
                     </p>
                 </div>
 
-                <div className="bg-white/80 backdrop-blur-xl border border-gray-100 rounded-3xl p-8 shadow-xl">
-                    <h2 className="text-2xl font-bold text-slate-800 mb-8 text-center">Project Team</h2>
-                    <div className="grid md:grid-cols-2 gap-8 mb-8">
+                <div className="bg-white/80 backdrop-blur-xl border border-gray-100 rounded-3xl p-8 shadow-2xl">
+                    <h2 className="text-2xl font-bold text-black-800 mb-8 text-center">Project Team</h2>
+                    <div className="grid md:grid-cols-2 gap-8 mb-8 ">
                         <div className="bg-indigo-50/50 p-6 rounded-2xl border border-indigo-100">
                             <h3 className="text-xl font-bold text-indigo-700 mb-2">Ratan Prakash Verma</h3>
                             <p className="text-sm font-semibold text-gray-700 mb-3">Frontend & AI Integration</p>
@@ -43,7 +43,7 @@ const Company = () => {
             {/* Blog Section */}
             <section className="text-gray-600 body-font overflow-hidden">
                 <div className="container px-5 py-24 mx-auto">
-                    <div className="-my-8 divide-y-2 divide-gray-100">
+                    <div className="-my-8 divide-y-2 divide-gray-500">
                         <div className="py-8 flex flex-wrap md:flex-nowrap">
                             <div className="md:w-64 md:mb-0 mb-6 flex-shrink-0 flex flex-col">
                                 <span className="font-semibold title-font text-gray-700">
@@ -61,7 +61,7 @@ const Company = () => {
                                     bag selfies, poke vaporware kombucha lumbersexual pork belly
                                     polaroid hoodie portland craft beer.
                                 </p>
-                                <a className="text-indigo-500 inline-flex items-center mt-4">
+                                <a className="text-black inline-flex items-center mt-4">
                                     Learn More
                                     <svg
                                         className="w-4 h-4 ml-2"
@@ -95,7 +95,7 @@ const Company = () => {
                                     bag selfies, poke vaporware kombucha lumbersexual pork belly
                                     polaroid hoodie portland craft beer.
                                 </p>
-                                <a className="text-indigo-500 inline-flex items-center mt-4">
+                                <a className="text-black inline-flex items-center mt-4">
                                     Learn More
                                     <svg
                                         className="w-4 h-4 ml-2"
@@ -129,7 +129,7 @@ const Company = () => {
                                     bag selfies, poke vaporware kombucha lumbersexual pork belly
                                     polaroid hoodie portland craft beer.
                                 </p>
-                                <a className="text-indigo-500 inline-flex items-center mt-4">
+                                <a className="text-black inline-flex items-center mt-4">
                                     Learn More
                                     <svg
                                         className="w-4 h-4 ml-2"

@@ -4,147 +4,162 @@ import { motion } from "framer-motion";
 
 export default function TermsOfService() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#030712] via-[#020617] to-black text-white py-20 px-6">
-      <div className="max-w-4xl mx-auto bg-white/5 border border-white/10 rounded-2xl p-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-200 via-white to-indigo-200 text-black py-20 px-6">
+      <div className="max-w-5xl mx-auto">
 
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-8"
+          className="mb-10"
         >
-          <h1 className="text-4xl font-bold mb-4">
-            Terms of Service
-          </h1>
+          <h1 className="text-4xl font-bold mb-4">Terms of Service</h1>
 
-          <p className="text-gray-400">
-            <span className="font-semibold text-white">Effective Date:</span> [Add Date] <br />
-            <span className="font-semibold text-white">Website:</span> ExcelIQ
+          <p className="text-gray-600">
+            <span className="text-gray-800 font-semibold">Last Updated:</span>{" "}
+            July 2026 <br />
+            <span className="text-gray-800 font-semibold">Product:</span> ExcelIQ —
+            AI Excel Assistant
           </p>
         </motion.div>
 
-        {/* Intro */}
-        <section className="mb-8 text-gray-300 leading-relaxed">
-          Welcome to ExcelIQ. By accessing or using our AI-powered Excel
-          assistant, you agree to be bound by these Terms of Service. If you do
-          not agree, please do not use the platform.
-        </section>
+        <div className="bg-black/5 border border-white/10 rounded-2xl p-10 space-y-10">
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">1. Eligibility</h2>
-          <p className="text-gray-300">
-            You must be at least 13 years old to use ExcelIQ. By using the
-            platform, you confirm that you are legally allowed to enter into
-            this agreement.
-          </p>
-        </section>
+          {/* Introduction */}
+          <section className="text-gray-800 leading-relaxed">
+            These Terms of Service ("Terms") govern your use of ExcelIQ. By
+            accessing or using the platform, you agree to these Terms. If you do
+            not agree, you must not use the service.
+          </section>
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">2. Nature of Service</h2>
-          <p className="text-gray-300">
-            ExcelIQ provides AI-powered Excel assistance including formula
-            generation, spreadsheet analysis, automation suggestions, and file
-            processing. Results are generated using AI and may not always be
-            perfect.
-          </p>
-        </section>
+          {/* Account */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">1. Accounts</h2>
+            <p className="text-gray-800">
+              To access certain features, you may be required to create an
+              account. You are responsible for maintaining the confidentiality
+              of your login credentials and for all activities that occur under
+              your account.
+            </p>
+          </section>
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">3. AI Generated Content</h2>
-          <p className="text-gray-300">
-            ExcelIQ generates formulas and insights using artificial
-            intelligence. You are responsible for reviewing and validating
-            outputs before using them in production or business decisions.
-          </p>
-        </section>
+          {/* Service Description */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">2. Service Description</h2>
+            <p className="text-gray-800">
+              ExcelIQ provides AI-powered spreadsheet assistance including
+              formula generation, automation suggestions, Excel analysis, and
+              file processing. AI-generated outputs may contain inaccuracies and
+              should be reviewed before use.
+            </p>
+          </section>
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">4. User Responsibilities</h2>
-          <ul className="list-disc list-inside text-gray-300 space-y-1">
-            <li>Provide accurate account information</li>
-            <li>Keep login credentials secure</li>
-            <li>Use ExcelIQ only for lawful purposes</li>
-            <li>Do not upload malicious or harmful files</li>
-            <li>Do not attempt to reverse engineer the AI system</li>
-          </ul>
-        </section>
+          {/* Acceptable Use */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">3. Acceptable Use</h2>
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">5. File Uploads</h2>
-          <p className="text-gray-300">
-            When uploading Excel files, you confirm that you have permission to
-            use the data. You should not upload sensitive or confidential
-            information.
-          </p>
-        </section>
+            <ul className="list-disc list-inside text-gray-800 space-y-2">
+              <li>You may not use the service for illegal purposes</li>
+              <li>You may not upload malicious or harmful files</li>
+              <li>You may not attempt to reverse engineer the platform</li>
+              <li>You may not abuse API or automation limits</li>
+              <li>You may not resell or redistribute the service</li>
+            </ul>
+          </section>
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">6. Subscriptions & Payments</h2>
-          <p className="text-gray-300">
-            Paid plans provide additional AI usage and features. Subscription
-            pricing may change. You can cancel anytime. No refunds unless
-            required by law.
-          </p>
-        </section>
+          {/* Data */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">4. User Data</h2>
+            <p className="text-gray-800">
+              You retain ownership of your uploaded data. By uploading files,
+              you grant ExcelIQ permission to process data for generating AI
+              results. We do not sell your data.
+            </p>
+          </section>
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">7. Intellectual Property</h2>
-          <p className="text-gray-300">
-            ExcelIQ branding, AI system, UI, and platform design are our
-            intellectual property. You may not copy, reproduce, or resell the
-            service.
-          </p>
-        </section>
+          {/* AI Disclaimer */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">5. AI Disclaimer</h2>
+            <p className="text-gray-800">
+              ExcelIQ uses artificial intelligence. AI outputs are generated
+              automatically and may not always be accurate. You are responsible
+              for reviewing results before making decisions.
+            </p>
+          </section>
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">8. Limitation of Liability</h2>
-          <p className="text-gray-300">
-            ExcelIQ is provided "as is". We are not responsible for errors in AI
-            output, spreadsheet mistakes, or business losses resulting from use
-            of the platform.
-          </p>
-        </section>
+          {/* Payments */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">6. Subscriptions & Billing</h2>
+            <p className="text-gray-800">
+              Some features require paid subscription. Pricing may change at any
+              time. Subscriptions renew automatically unless cancelled. Refunds
+              are only provided where required by law.
+            </p>
+          </section>
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">9. Termination</h2>
-          <p className="text-gray-300">
-            We may suspend accounts that violate these terms or misuse the AI
-            system.
-          </p>
-        </section>
+          {/* Intellectual Property */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">7. Intellectual Property</h2>
+            <p className="text-gray-800">
+              The ExcelIQ platform, UI, branding, and AI system are protected by
+              intellectual property laws. You may not copy, reproduce, or
+              distribute any part of the service.
+            </p>
+          </section>
 
-        {/* Section */}
-        <section className="mb-8">
-          <h2 className="text-2xl font-semibold mb-4">10. Changes to Terms</h2>
-          <p className="text-gray-300">
-            We may update these terms from time to time. Continued use of ExcelIQ
-            indicates acceptance of the updated terms.
-          </p>
-        </section>
+          {/* Termination */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">8. Account Termination</h2>
+            <p className="text-gray-800">
+              We may suspend or terminate accounts that violate these Terms,
+              misuse AI features, or attempt unauthorized access.
+            </p>
+          </section>
 
-        {/* Contact */}
-        <section>
-          <h2 className="text-2xl font-semibold mb-4">11. Contact Us</h2>
+          {/* Liability */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">9. Limitation of Liability</h2>
+            <p className="text-gray-800">
+              ExcelIQ is provided "as is" without warranties. We are not liable
+              for data loss, AI inaccuracies, financial losses, or business
+              damages.
+            </p>
+          </section>
 
-          <p className="text-gray-300">
-            For questions about these Terms:
-          </p>
+          {/* Changes */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">10. Changes to Terms</h2>
+            <p className="text-gray-800">
+              We may update these Terms periodically. Continued use of the
+              platform after updates constitutes acceptance of the revised
+              Terms.
+            </p>
+          </section>
 
-          <p className="text-gray-300 mt-2">
-            Email: support@excaliq.com <br />
-            Website: ExcelIQ
-          </p>
-        </section>
+          {/* Governing Law */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">11. Governing Law</h2>
+            <p className="text-gray-800">
+              These Terms are governed by applicable laws. Any disputes will be
+              resolved in the jurisdiction where ExcelIQ operates.
+            </p>
+          </section>
 
+          {/* Contact */}
+          <section>
+            <h2 className="text-2xl font-semibold mb-4">12. Contact</h2>
+            <p className="text-gray-800">
+              If you have questions about these Terms, contact:
+            </p>
+
+            <p className="text-gray-800 mt-3">
+              Email: support@exceliq.com <br />
+              Website: ExcelIQ <br />
+              Support: /support
+            </p>
+          </section>
+
+        </div>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Link } from "lucide-react";
 
 const posts = [
   {
@@ -92,11 +92,17 @@ export default function Blog() {
         </div>
 
         {/* view all */}
+
+         
         <div className="text-center mt-16">
-          <button className="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:scale-105 transition shadow-lg">
-            View All Articles
-          </button>
-        </div>
+
+          
+            <button className="px-8 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold hover:scale-105 transition shadow-lg">
+              View All Articles
+            </button>
+            </div>
+          
+        
 
       </div>
     </section>

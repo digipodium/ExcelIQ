@@ -25,7 +25,7 @@ const cardVariant = {
 
 export default function Overview() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#030712] via-[#020617] to-black text-white py-20 px-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-200 via-white to-indigo-200 text-black py-20 px-6">
       <div className="max-w-6xl mx-auto">
         {/* Hero Section */}
         <motion.div
@@ -34,10 +34,10 @@ export default function Overview() {
           transition={{ duration: 0.6 }}
           className="text-center mb-20"
         >
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-blue-600 to-cyan-400 bg-clip-text text-transparent">
             ExcelIQ AI Overview
           </h1>
-          <p className="text-gray-400 max-w-3xl mx-auto text-lg leading-relaxed">
+          <p className="text-gray-500 max-w-3xl mx-auto text-lg leading-relaxed">
             ExcelIQ is your AI-powered Excel assistant that helps you generate
             formulas, analyze data, automate spreadsheets, and solve Excel
             problems instantly. Built for students, analysts, and professionals
@@ -52,10 +52,10 @@ export default function Overview() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 hover:border-blue-500/40 transition"
+            className="bg-black/5 backdrop-blur-lg border border-black/100 rounded-2xl p-8 hover:border-purple-600/100 transition"
           >
             <h2 className="text-2xl font-semibold mb-4">Our Mission</h2>
-            <p className="text-gray-400 leading-relaxed">
+            <p className="text-gray-500 leading-relaxed">
               To simplify Excel and spreadsheet workflows using AI so anyone can
               generate formulas, analyze data, and automate tasks without
               advanced Excel knowledge.
@@ -67,10 +67,10 @@ export default function Overview() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
-            className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-2xl p-8 hover:border-blue-500/40 transition"
+            className="bg-black/5 backdrop-blur-lg border border-black/100 rounded-2xl p-8 hover:border-blue-500/40 transition"
           >
             <h2 className="text-2xl font-semibold mb-4">Our Vision</h2>
-            <p className="text-gray-400 leading-relaxed">
+            <p className="text-gray-500 leading-relaxed">
               To become the most intelligent Excel AI assistant trusted by
               students, businesses, and data professionals worldwide.
             </p>
@@ -124,11 +124,11 @@ export default function Overview() {
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true }}
-                  className="bg-white/5 border border-white/10 p-6 rounded-xl hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/10 transition"
+                  className="bg-black/5 border border-black/100 rounded-xl p-6 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/40 transition"
                 >
-                  <Icon className="w-8 h-8 text-blue-400 mb-4" />
+                  <Icon className="w-8 h-8 text-blue-600 mb-4" />
                   <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
-                  <p className="text-gray-400 text-sm">{item.desc}</p>
+                  <p className="text-gray-500 text-sm">{item.desc}</p>
                 </motion.div>
               );
             })}
@@ -146,13 +146,13 @@ export default function Overview() {
             Powerful AI Dashboard
           </h2>
 
-          <div className="bg-gradient-to-br from-white/5 to-white/0 border border-white/10 rounded-2xl p-8">
+          <div className="bg-gradient-to-br from-white/5 to-white/0 border border-purple-500 rounded-4xl p-8 shadow-lg">
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
                 <h3 className="text-2xl font-semibold mb-4">
                   Ask Excel Anything
                 </h3>
-                <p className="text-gray-400 mb-6">
+                <p className="text-gray-500 mb-6">
                   Upload your Excel file or type your question. ExcelIQ will
                   generate formulas, clean data, create summaries, and provide
                   insights instantly.
@@ -160,36 +160,36 @@ export default function Overview() {
 
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="text-green-400 w-5 h-5" />
-                    <span className="text-gray-300">Formula generation</span>
+                    <CheckCircle className="text-green-600 w-5 h-5" />
+                    <span className="text-gray-500">Formula generation</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="text-green-400 w-5 h-5" />
-                    <span className="text-gray-300">Data cleaning</span>
+                    <CheckCircle className="text-green-600 w-5 h-5" />
+                    <span className="text-gray-500">Data cleaning</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="text-green-400 w-5 h-5" />
-                    <span className="text-gray-300">Chart suggestions</span>
+                    <CheckCircle className="text-green-600 w-5 h-5" />
+                    <span className="text-gray-500">Chart suggestions</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="text-green-400 w-5 h-5" />
-                    <span className="text-gray-300">Excel automation</span>
+                    <CheckCircle className="text-green-600 w-5 h-5" />
+                    <span className="text-gray-500">Excel automation</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-black border border-white/10 rounded-xl p-6">
-                <div className="bg-[#020617] rounded-lg p-4 border border-white/5">
+              <div className=" border border-red/100 rounded-2xl p-6">
+                <div className="bg-[#020617] rounded-2xl p-4 border border-red/100">
                   <p className="text-sm text-gray-500 mb-2">ExcelIQ AI</p>
-                  <p className="text-gray-300 text-sm">
+                  <p className="text-gray-500 text-sm">
                     Generate Excel formula to calculate total sales where region
                     = North
                   </p>
                 </div>
 
-                <div className="mt-4 bg-[#020617] rounded-lg p-4 border border-white/5">
+                <div className="mt-4 bg-[#020617] rounded-2xl p-4 border border-white/5">
                   <p className="text-sm text-gray-500 mb-2">Response</p>
-                  <p className="text-green-400 text-sm font-mono">
+                  <p className="text-green-500 text-sm font-mono">
                     =SUMIF(A:A,"North",B:B)
                   </p>
                 </div>
@@ -208,7 +208,7 @@ export default function Overview() {
           <h2 className="text-3xl font-bold mb-4">
             Start Using ExcelIQ Today
           </h2>
-          <p className="text-gray-400 max-w-2xl mx-auto mb-8">
+          <p className="text-gray-600 max-w-2xl mx-auto mb-8">
             Save time, generate formulas instantly, and analyze Excel data using
             AI. ExcelIQ helps you work smarter with spreadsheets.
           </p>
