@@ -13,6 +13,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/user', UserRouter);
+app.use('/ai', require('./router/AIRouter'));
 //adding a new route
 app.get('/add', (req, res) => {
   res.send('response from add route');
