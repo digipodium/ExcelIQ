@@ -1,11 +1,11 @@
 'use client';
 import React from "react";
 import { motion } from "framer-motion";
-import Faq from "./(homepages)/faq/page";
-import Contact from "./support/contact";
-import Blog from "./blog/page";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import Faq from "./(main)/faq/page";
+import Contact from "./(main)/support/contact";
+import Blog from "./(main)/blog/page";
+// import Navbar from "@/components/Navbar";
+// import Footer from "@/components/Footer";
 
 export const Home = () => {
   return (

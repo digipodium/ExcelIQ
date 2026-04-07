@@ -5,8 +5,6 @@ import { useFormik } from 'formik';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation'; // ← Add this
 import toast from 'react-hot-toast';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 
 const Login = () => {
   const router = useRouter(); // ← Initialize router
