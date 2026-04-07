@@ -1,25 +1,17 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
-import { useState, useEffect } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
-export default function ResetPassword() {
+function ResetPasswordInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const email = searchParams.get("email");
 
-  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-
-  useEffect(() => {
-    const e = searchParams.get("email");
-    if (e) setEmail(e);
-  }, [searchParams]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,11 +29,7 @@ export default function ResetPassword() {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            email,
-            otp,
-            password,
-          }),
+          body: JSON.stringify({ email, otp, password }),
         }
       );
 
@@ -129,3 +117,12 @@ export default function ResetPassword() {
     </div>
   );
 }
+
+export default function ResetPassword() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ResetPasswordInner />
+    </Suspense>
+  );
+}
+
