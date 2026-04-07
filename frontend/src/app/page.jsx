@@ -6,7 +6,7 @@ import Faq from "./(main)/faq/page";
 import Contact from "./(main)/support/contact";
 import Blog from "./(main)/blog/page";
 import Navbar from "./(main)/Navbar";
-import Footer from "@/components/Footer";
+import Footer from "@/app/(main)/Footer";
 
 
 export const Home = () => {
