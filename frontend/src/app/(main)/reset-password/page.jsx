@@ -1,5 +1,8 @@
 "use client";
-import { useState } from "react";
+
+export const dynamic = "force-dynamic";
+
+import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -7,59 +10,62 @@ import toast from "react-hot-toast";
 export default function ResetPassword() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const email = searchParams.get("email");
 
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  useEffect(() => {
+    const e = searchParams.get("email");
+    if (e) setEmail(e);
+  }, [searchParams]);
 
-  if (otp.length !== 6) {
-    toast.error("Enter valid OTP");
-    return;
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  try {
-    const res = await fetch(
-      "http://localhost:5000/user/reset-password-otp",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          otp,
-          password,
-        }),
-      }
-    );
-
-    const data = await res.json();
-
-    if (res.ok) {
-      toast.success("Password reset successfully");
-      router.push("/login");
-    } else {
-      toast.error(data.message);
+    if (otp.length !== 6) {
+      toast.error("Enter valid OTP");
+      return;
     }
-  } catch (err) {
-    toast.error("Server error");
-  }
-};
+
+    try {
+      const res = await fetch(
+        "http://localhost:5000/user/reset-password-otp",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            otp,
+            password,
+          }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Password reset successfully");
+        router.push("/login");
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error("Server error");
+    }
+  };
 
   return (
     <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-blue-200 px-4 pt-20 pb-6 overflow-hidden font-sans">
       
-      {/* Background blur */}
       <div className="absolute top-10 right-10 w-96 h-96 bg-blue-500 opacity-20 rounded-full blur-[100px] animate-pulse"></div>
       <div className="absolute bottom-10 left-10 w-96 h-96 bg-cyan-500 opacity-20 rounded-full blur-[100px] animate-pulse"></div>
 
       <div className="relative z-10 w-full max-w-lg px-8 py-6 sm:px-12 sm:py-8 bg-white rounded-3xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] border border-white/60">
 
-        {/* Header */}
         <div className="text-center mb-5">
           <h2 className="text-2xl font-extrabold text-slate-900 mb-1 tracking-tight">
             Verify OTP
@@ -101,10 +107,6 @@ export default function ResetPassword() {
             />
           </div>
 
-          {message && (
-            <p className="text-red-500 text-sm text-center">{message}</p>
-          )}
-
           <button
             type="submit"
             className="w-full mt-4 py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-sm font-bold rounded-xl shadow-md hover:scale-[1.02] transition-all duration-300"
@@ -113,7 +115,6 @@ export default function ResetPassword() {
           </button>
         </form>
 
-        {/* Footer */}
         <div className="mt-5 text-center text-sm text-gray-500 font-medium">
           Back to{" "}
           <Link
