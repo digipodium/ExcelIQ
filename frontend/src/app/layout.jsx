@@ -27,13 +27,13 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Toaster position="top-right"/>
-         <Navbar/> 
+        <Toaster position="top-right" />
+        {/* <Navbar /> */}
         {children}
 
-        <Footer/>
-        
-        
+        <Footer />
+
+
       </body>
     </html>
   );
