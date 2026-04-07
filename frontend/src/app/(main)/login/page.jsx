@@ -19,7 +19,7 @@ const Login = () => {
           localStorage.setItem('token', token);
 
           // Redirect to dashboard
-          router.push('/Dashboard'); // ← Redirect after login
+          router.push('/user/Dashboard'); // ← Redirect after login
         })
         .catch((err) => {
           if (err.response && err.response.status === 403) {
