@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { MessageSquare, FunctionSquare, FileText, BarChart3, Menu, X, LogOut, Settings, ChevronRight } from 'lucide-react';
 
 const navItems = [
@@ -12,9 +13,16 @@ const navItems = [
 
 export default function Sidebar({ activeTab, onTabChange }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+    const router = useRouter();
+  
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    router.push('/login');
+  };
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-[#0f172a] text-slate-300">
+      {/* Logo */}
       <div className="px-6 pt-8 pb-10">
         <Link href="" className="flex items-center gap-3">
           <img
@@ -55,11 +63,12 @@ export default function Sidebar({ activeTab, onTabChange }) {
         })}
       </nav>
 
-      <div className="p-4 mt-auto border-t border-slate-800/50 space-y-1">
-        <button className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-slate-400 hover:text-white hover:bg-slate-800 transition-all">
-          <Settings size={18} /> <span className="text-sm font-medium">Settings</span>
-        </button>
-        <button className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-red-400 hover:text-red-300 hover:bg-red-900/10 transition-all">
+      {/* Logout */}
+      <div className="p-4 border-t border-slate-800/50">
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-3 px-4 py-3 rounded-xl w-full text-red-400 hover:text-red-300 hover:bg-red-900/10 transition-all"
+        >
           <LogOut size={18} /> <span className="text-sm font-medium">Log out</span>
         </button>
       </div>

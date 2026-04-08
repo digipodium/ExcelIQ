@@ -27,14 +27,16 @@ export default function AdminSidebar({ activeTab, onTabChange }) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full bg-[#0f172a] text-slate-300">
       {/* Logo */}
-      <div className="px-6 pt-8 pb-10">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md">
-            <Sparkles className="text-white w-5 h-5" />
-          </div>
+     <div className="px-6 pt-8 pb-10">
+        <Link href="" className="flex items-center gap-3">
+          <img
+            src="/logo.png"
+            alt="Excel IQ"
+            className="w-10 h-10 rounded-xl shadow-md object-contain"
+          />
           <div>
             <h1 className="text-lg font-bold text-white tracking-tight">Excel<span className="text-indigo-400">IQ</span></h1>
-            <p className="text-[0.6rem] text-slate-500 font-bold uppercase tracking-widest">Admin Portal</p>
+            <p className="text-[0.6rem] text-slate-500 font-bold uppercase tracking-widest">AI Spreadsheet</p>
           </div>
         </Link>
       </div>
