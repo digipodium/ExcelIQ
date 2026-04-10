@@ -23,10 +23,17 @@ router.post('/upload', userAuth, upload.single('excelFile'), async (req, res) =>
     // 2. Read the file to get Row/Column counts for the Metadata panel
     const workbook = xlsx.readFile(req.file.path);
     const sheetName = workbook.SheetNames[0];
-    const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
     
+    const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
     const rowsCount = sheetData.length;
     const columnsCount = sheetData.length > 0 ? Object.keys(sheetData[0]).length : 0;
+
+    const jsonArrayData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: "" });
+    let previewData = { headers: [], rows: [] };
+    if (jsonArrayData.length > 0) {
+      previewData.headers = jsonArrayData[0];
+      previewData.rows = jsonArrayData.slice(1);
+    }
 
     // 3. Send data back exactly as Frontend expects
     res.status(200).json({
@@ -37,7 +44,8 @@ router.post('/upload', userAuth, upload.single('excelFile'), async (req, res) =>
         size: (req.file.size / 1024).toFixed(2) + ' KB',
         rows: rowsCount,
         columns: columnsCount
-      }
+      },
+      previewData
     });
 
   } catch (error) {

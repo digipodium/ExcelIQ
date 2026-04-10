@@ -1,8 +1,9 @@
 'use client';
 import { useState, useRef } from 'react';
-import { Sparkles, Upload, Shield, Bot, Send, Table, Loader2, User, FileSpreadsheet, HardDrive, Rows3, Columns3, AlertCircle, X, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Upload, Shield, Bot, Send, Table, Loader2, User, FileSpreadsheet, HardDrive, Rows3, Columns3, AlertCircle, X, CheckCircle2, Eye } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import DatasetExplorerModal from './DatasetExplorerModal';
 
 export default function ExcelAssistant() {
   const [file, setFile] = useState(null);
@@ -12,12 +13,14 @@ export default function ExcelAssistant() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [fileMeta, setFileMeta] = useState(null);
   const [uploadedFilePath, setUploadedFilePath] = useState(null);
-  
+
   const [dragOver, setDragOver] = useState(false);
   const [cleaningStatus, setCleaningStatus] = useState(null); // 'cleaning', 'ready', or null
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [fileData, setFileData] = useState({ headers: [], rows: [] });
   const inputRef = useRef(null);
   const chatEndRef = useRef(null);
-  
+
   const ACCEPTED = ".xlsx,.xls,.csv";
 
   // --- FUNCTIONS ---
@@ -39,6 +42,8 @@ export default function ExcelAssistant() {
     setFileMeta(null);
     setUploadedFilePath(null);
     setCleaningStatus(null);
+    setFileData({ headers: [], rows: [] });
+    setIsPreviewOpen(false);
   };
 
   const handleUpload = async () => {
@@ -63,7 +68,10 @@ export default function ExcelAssistant() {
       toast.success("File uploaded successfully!", { id: toastId });
       setFileMeta(res.data.fileMeta);
       setUploadedFilePath(res.data.path);
-      setCleaningStatus('ready'); 
+      if (res.data.previewData) {
+        setFileData(res.data.previewData);
+      }
+      setCleaningStatus('ready');
     } catch (error) {
       toast.error(error.response?.data?.message || "Upload failed", { id: toastId });
       setCleaningStatus(null);
@@ -83,7 +91,7 @@ export default function ExcelAssistant() {
 
     try {
       const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:5000/chat/query', 
+      const res = await axios.post('http://localhost:5000/chat/query',
         { query: queryToSend, file: uploadedFilePath },
         {
           headers: {
@@ -106,7 +114,7 @@ export default function ExcelAssistant() {
     <div className="space-y-6">
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-5">
-          
+
           {/* UPLOAD ZONE */}
           {!file ? (
             <div
@@ -153,7 +161,7 @@ export default function ExcelAssistant() {
                 </div>
                 <div className="flex gap-2">
                   {!uploadedFilePath && (
-                    <button 
+                    <button
                       onClick={handleUpload}
                       disabled={uploading}
                       className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition disabled:opacity-50"
@@ -209,26 +217,26 @@ export default function ExcelAssistant() {
               )}
               {isAnalyzing && (
                 <div className="flex gap-3">
-                   <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-slate-200 text-slate-700"><Bot className="w-4 h-4" /></div>
-                   <div className="p-4 rounded-2xl bg-white border border-slate-200 text-slate-700 rounded-tl-none shadow-sm flex items-center gap-2">
-                     <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
-                     <p className="text-sm">Analyzing data...</p>
-                   </div>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-slate-200 text-slate-700"><Bot className="w-4 h-4" /></div>
+                  <div className="p-4 rounded-2xl bg-white border border-slate-200 text-slate-700 rounded-tl-none shadow-sm flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+                    <p className="text-sm">Analyzing data...</p>
+                  </div>
                 </div>
               )}
               <div ref={chatEndRef} />
             </div>
 
             <div className="p-4 border-t bg-white flex gap-3 items-center">
-              <input 
-                type="text" 
-                placeholder="Type your question..." 
-                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 text-slate-700 transition-all" 
+              <input
+                type="text"
+                placeholder="Type your question..."
+                className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 text-slate-700 transition-all"
                 value={currentQuery}
                 onChange={(e) => setCurrentQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
               />
-              <button 
+              <button
                 className={`p-3 rounded-xl transition-all ${isAnalyzing || !currentQuery.trim() ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-md hover:shadow-lg'}`}
                 onClick={handleSendMessage}
                 disabled={isAnalyzing || !currentQuery.trim()}
@@ -273,8 +281,64 @@ export default function ExcelAssistant() {
               </div>
             )}
           </div>
+
+          {/* DATASET PREVIEW BOX */}
+          {fileMeta && (
+            <div 
+              onClick={() => setIsPreviewOpen(true)}
+              className="bg-white border border-indigo-200 rounded-3xl p-5 shadow-sm cursor-pointer hover:bg-indigo-50 hover:border-indigo-300 transition-all group overflow-hidden relative"
+            >
+              <div className="flex items-center gap-4 mb-4 relative z-10">
+                <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 transition-transform shrink-0">
+                  <Eye className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-800">Dataset Preview</h3>
+                  <p className="text-xs text-slate-500 mt-1">Click to explore entire data</p>
+                </div>
+              </div>
+              
+              {/* Miniature Dataset Preview */}
+              <div className="relative mt-2 border border-slate-100 rounded-xl overflow-hidden bg-white/50 opacity-80 group-hover:opacity-100 transition-opacity">
+                <table className="w-full text-left whitespace-nowrap table-fixed">
+                  <thead className="bg-slate-50">
+                    <tr>
+                      {fileData.headers.slice(0, 4).map((header, idx) => (
+                        <th key={idx} className="py-1.5 px-2 text-[9px] font-semibold text-slate-500 border-b border-slate-100 truncate">
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {fileData.rows.slice(0, 5).map((row, rowIdx) => (
+                      <tr key={rowIdx}>
+                        {fileData.headers.slice(0, 4).map((_, colIdx) => (
+                          <td key={colIdx} className="py-1.5 px-2 text-[9px] text-slate-400 truncate">
+                            {row[colIdx]}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {fileData.rows.length > 5 && (
+                  <div className="text-center py-1.5 bg-gradient-to-t from-white to-transparent text-[9px] text-slate-400 font-medium pb-2">
+                    ...and {fileData.rows.length - 5} more rows
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
+
+      <DatasetExplorerModal 
+        isOpen={isPreviewOpen} 
+        onClose={() => setIsPreviewOpen(false)} 
+        fileData={fileData} 
+        fileName={fileMeta?.name} 
+      />
     </div>
   );
 }
