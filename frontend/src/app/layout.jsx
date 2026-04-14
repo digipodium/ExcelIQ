@@ -29,9 +29,7 @@ export default function RootLayout({ children }) {
         <Toaster position="top-right" />
         {/* <Navbar /> */}
         {children}
-
-
-<CookieSettings />
+        <CookieSettings />
       </body>
     </html>
   );
