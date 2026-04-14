@@ -2,11 +2,12 @@
 
 import { ArrowRight, Link } from "lucide-react";
 
+
 const posts = [
   {
     title: "How Excel IQ Analyzes Excel CV Files",
     desc: "Learn how our AI-powered system extracts insights from Excel CV files and helps recruiters make better decisions.",
-    img: "https://images.unsplash.com/photo-1551281044-8d8c4b6f3c4b",
+    img: "excel.jpg",
     tag: "Product"
   },
   {
