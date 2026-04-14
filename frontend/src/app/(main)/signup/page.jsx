@@ -43,7 +43,7 @@ export default function Signup() {
       }
 
       // Redirect to dashboard
-      window.location.href = '/user/Dashboard'; // simple redirect
+      window.location.href = '/login'; // simple redirect
       // OR, if using Next.js app router with useRouter:
       // router.push('/dashboard');
     } else {
