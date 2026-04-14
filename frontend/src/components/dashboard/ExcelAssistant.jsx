@@ -1,83 +1,33 @@
 'use client';
 import { useState, useRef } from 'react';
-import { Sparkles, Upload, Shield, Bot, Send, Table, Loader2, User, FileSpreadsheet, HardDrive, Rows3, Columns3, AlertCircle, X, CheckCircle2, Eye } from 'lucide-react';
+import { Bot, Send, Table, Loader2, User, FileSpreadsheet, HardDrive, Rows3, Columns3, AlertCircle, Eye } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import DatasetExplorerModal from './DatasetExplorerModal';
+import FileUpload from './FileUpload';
 
 export default function ExcelAssistant() {
-  const [file, setFile] = useState(null);
-  const [uploading, setUploading] = useState(false);
   const [chatHistory, setChatHistory] = useState([]);
   const [currentQuery, setCurrentQuery] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [fileMeta, setFileMeta] = useState(null);
   const [uploadedFilePath, setUploadedFilePath] = useState(null);
-
-  const [dragOver, setDragOver] = useState(false);
-  const [cleaningStatus, setCleaningStatus] = useState(null); // 'cleaning', 'ready', or null
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [fileData, setFileData] = useState({ headers: [], rows: [] });
-  const inputRef = useRef(null);
   const chatEndRef = useRef(null);
 
-  const ACCEPTED = ".xlsx,.xls,.csv";
-
-  // --- FUNCTIONS ---
-  const handleFile = (selectedFile) => {
-    if (selectedFile) {
-      setFile(selectedFile);
-    }
+  // ── upload callbacks (from FileUpload component) ──────────────────────
+  const handleUploadSuccess = (data) => {
+    setFileMeta(data.fileMeta);
+    setUploadedFilePath(data.path);
+    if (data.previewData) setFileData(data.previewData);
   };
 
-  const onDrop = (e) => {
-    e.preventDefault();
-    setDragOver(false);
-    const droppedFile = e.dataTransfer.files[0];
-    handleFile(droppedFile);
-  };
-
-  const removeFile = () => {
-    setFile(null);
+  const handleFileRemoved = () => {
     setFileMeta(null);
     setUploadedFilePath(null);
-    setCleaningStatus(null);
     setFileData({ headers: [], rows: [] });
     setIsPreviewOpen(false);
-  };
-
-  const handleUpload = async () => {
-    if (!file) return toast.error("Please select a file first");
-
-    const formData = new FormData();
-    formData.append('excelFile', file);
-
-    setUploading(true);
-    setCleaningStatus('cleaning');
-    const toastId = toast.loading("Uploading and analyzing...");
-
-    try {
-      const token = localStorage.getItem('token');
-      const res = await axios.post('http://localhost:5000/file/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      toast.success("File uploaded successfully!", { id: toastId });
-      setFileMeta(res.data.fileMeta);
-      setUploadedFilePath(res.data.path);
-      if (res.data.previewData) {
-        setFileData(res.data.previewData);
-      }
-      setCleaningStatus('ready');
-    } catch (error) {
-      toast.error(error.response?.data?.message || "Upload failed", { id: toastId });
-      setCleaningStatus(null);
-    } finally {
-      setUploading(false);
-    }
   };
 
   const handleSendMessage = async () => {
@@ -115,85 +65,11 @@ export default function ExcelAssistant() {
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-5">
 
-          {/* UPLOAD ZONE */}
-          {!file ? (
-            <div
-              className={`border-2 border-dashed rounded-3xl p-12 text-center transition-all cursor-pointer ${dragOver ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 bg-white hover:border-indigo-400'}`}
-              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-              onDragLeave={() => setDragOver(false)}
-              onDrop={onDrop}
-              onClick={() => inputRef.current?.click()}
-            >
-              <input
-                ref={inputRef}
-                type="file"
-                accept={ACCEPTED}
-                className="hidden"
-                onChange={(e) => handleFile(e.target.files?.[0])}
-              />
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 flex items-center justify-center">
-                  <Upload className="w-7 h-7 text-indigo-600" />
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-800">
-                    Drop your spreadsheet here or{' '}
-                    <span className="text-indigo-600">browse</span>
-                  </p>
-                  <p className="text-sm text-slate-400 mt-1">
-                    Supports CSV, XLSX, XLS • Max 25 MB
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* FILE LOADED STATE */
-            <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
-                    <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-slate-800 text-sm">{file.name}</p>
-                    <p className="text-xs text-slate-400">{uploadedFilePath ? "Uploaded" : "Ready to upload"}</p>
-                  </div>
-                </div>
-                <div className="flex gap-2">
-                  {!uploadedFilePath && (
-                    <button
-                      onClick={handleUpload}
-                      disabled={uploading}
-                      className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition disabled:opacity-50"
-                    >
-                      {uploading ? "Uploading..." : "Confirm"}
-                    </button>
-                  )}
-                  <button
-                    onClick={removeFile}
-                    className="p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition border border-slate-200 hover:border-red-200"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                {cleaningStatus === 'cleaning' && (
-                  <div className="flex items-center gap-2 text-sm text-indigo-600 bg-indigo-50 p-3 rounded-xl border border-indigo-100">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Status: Uploading & Parsing Data...
-                  </div>
-                )}
-                {cleaningStatus === 'ready' && (
-                  <div className="flex items-center gap-2 text-sm text-emerald-600 bg-emerald-50 p-3 rounded-xl border border-emerald-100">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Status: Data Ready ✓
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          {/* ── FILE UPLOAD COMPONENT ── */}
+          <FileUpload
+            onUploadSuccess={handleUploadSuccess}
+            onFileRemoved={handleFileRemoved}
+          />
 
           {/* CHAT BOX */}
           <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col h-[500px]">
