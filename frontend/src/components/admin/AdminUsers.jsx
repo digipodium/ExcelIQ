@@ -1,82 +1,166 @@
-'use client';
-import { Trash2 } from 'lucide-react';
-import toast from 'react-hot-toast';
-import axios from 'axios';
+"use client";
 
-export default function AdminUsers({ users, setUsers, setStats }) {
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Search, Filter, Edit2, Trash2, Check, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-  const handleDeleteUser = async (id) => {
-    if (!window.confirm("Permanently delete this user?")) return;
+export default function AdminUsers() {
+  const [users, setUsers] = useState([]);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [editingId, setEditingId] = useState(null);
+  const [formState, setFormState] = useState({});
+  const router = useRouter();
+  const usersPerPage = 5;
+
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await fetch(`${BASE_URL}/api/admin/users`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.status === 403) {
+          router.push("/");
+          return;
+        }
+        const data = await res.json();
+        setUsers(data);
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+    };
+    fetchUsers();
+  }, [router, BASE_URL]);
+
+  const deleteUser = async (id) => {
+    if (!window.confirm("Delete this user?")) return;
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/admin/users/${id}`, {
+      const token = sessionStorage.getItem("token");
+      await fetch(`${BASE_URL}/api/admin/users/${id}`, {
+        method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
-      toast.success("User deleted");
-      setUsers(prev => prev.filter(u => u._id !== id));
-      setStats(prev => ({ ...prev, totalUsers: prev.totalUsers - 1 }));
-    } catch (error) {
-      toast.error("Failed to delete user");
+      setUsers((prev) => prev.filter((u) => u._id !== id));
+    } catch {
+      alert("Failed to delete user");
     }
   };
 
+  const saveEdit = async (id) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      const body = { ...formState };
+      if (!body.password) delete body.password;
+
+      const res = await fetch(`${BASE_URL}/api/admin/users/${id}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify(body)
+      });
+      
+      const updatedUser = await res.json();
+      setUsers((us) => us.map((u) => (u._id === id ? { ...u, ...updatedUser } : u)));
+      setEditingId(null);
+    } catch {
+      alert("Failed to save changes");
+    }
+  };
+
+  const filteredUsers = users.filter((u) => {
+    const matchSearch = u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase());
+    const matchRole = roleFilter ? u.role === roleFilter : true;
+    return matchSearch && matchRole;
+  });
+
+  const paginatedUsers = filteredUsers.slice((page - 1) * usersPerPage, page * usersPerPage);
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-extrabold text-slate-900">User Management</h2>
-        <p className="text-slate-500 mt-1">View, monitor, and manage all registered accounts.</p>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8">
+      <h1 className="text-2xl font-bold text-[#2E3C43] mb-8">Manage Users</h1>
+      
+      {/* Search & Filter */}
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-3 text-gray-400" size={20} />
+          <input 
+            type="text" 
+            placeholder="Search by name or email..." 
+            value={search} onChange={(e) => setSearch(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border rounded-xl focus:ring-2 focus:ring-[#00ACC1] outline-none"
+          />
+        </div>
+        <select 
+          value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}
+          className="border rounded-xl px-4 py-2 bg-white text-gray-600 focus:ring-2 focus:ring-[#00ACC1] outline-none"
+        >
+          <option value="">All Roles</option>
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
       </div>
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-bold tracking-wider border-b border-slate-200">
-              <tr>
-                <th className="px-6 py-4">User</th>
-                <th className="px-6 py-4">Role</th>
-                <th className="px-6 py-4">Joined</th>
-                <th className="px-6 py-4 text-right">Actions</th>
+      {/* Table Area */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50 text-gray-600 border-b">
+              <th className="px-6 py-4 font-semibold text-sm">Name</th>
+              <th className="px-6 py-4 font-semibold text-sm">Email</th>
+              <th className="px-6 py-4 font-semibold text-sm">Role</th>
+              <th className="px-6 py-4 font-semibold text-sm">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedUsers.map((user) => (
+              <tr key={user._id} className="border-b hover:bg-gray-50 transition">
+                <td className="px-6 py-4">
+                  {editingId === user._id ? (
+                    <input className="border p-1 rounded w-full" value={formState.name || ""} onChange={(e) => setFormState({...formState, name: e.target.value})} />
+                  ) : <span className="font-medium text-gray-800">{user.name}</span>}
+                </td>
+                <td className="px-6 py-4">
+                  {editingId === user._id ? (
+                    <input className="border p-1 rounded w-full" value={formState.email || ""} onChange={(e) => setFormState({...formState, email: e.target.value})} />
+                  ) : <span className="text-gray-500">{user.email}</span>}
+                </td>
+                <td className="px-6 py-4">
+                  {editingId === user._id ? (
+                    <select className="border p-1 rounded" value={formState.role || "user"} onChange={(e) => setFormState({...formState, role: e.target.value})}>
+                      <option value="user">User</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  ) : (
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${user.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-700'}`}>
+                      {user.role}
+                    </span>
+                  )}
+                </td>
+                <td className="px-6 py-4 text-gray-400">
+                  {editingId === user._id ? (
+                    <div className="flex gap-2">
+                       <button onClick={() => saveEdit(user._id)} className="text-green-500 hover:text-green-600"><Check size={18} /></button>
+                       <button onClick={() => setEditingId(null)} className="text-red-500 hover:text-red-600"><X size={18} /></button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-4">
+                      <button onClick={() => { setEditingId(user._id); setFormState(user); }} className="hover:text-[#00ACC1] transition"><Edit2 size={18} /></button>
+                      <button onClick={() => deleteUser(user._id)} className="hover:text-red-500 transition"><Trash2 size={18} /></button>
+                    </div>
+                  )}
+                </td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {users.length === 0 ? (
-                <tr><td colSpan="4" className="p-8 text-center text-slate-400">No users found.</td></tr>
-              ) : (
-                users.map(user => (
-                  <tr key={user._id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-sm">
-                          {user.name?.charAt(0)?.toUpperCase() || 'U'}
-                        </div>
-                        <div>
-                          <p className="font-bold text-slate-800">{user.name}</p>
-                          <p className="text-slate-400 text-xs">{user.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${user.role === 'admin' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-500'}`}>
-                        {user.role || 'user'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-500 text-sm">{new Date(user.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleDeleteUser(user._id)}
-                        className="text-rose-500 hover:text-white hover:bg-rose-500 p-2 rounded-xl transition-all"
-                        title="Delete User"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </div>
+    </motion.div>
   );
 }

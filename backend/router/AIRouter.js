@@ -1,23 +1,71 @@
 const express = require("express");
 const router = express.Router();
 const { executePrompt } = require("../utils/gemini.js");
+const xlsx = require('xlsx'); // <-- Import the new library
+const fs = require('fs');
 
-// Formula generate karne ke liye route
+// Route for AI Formula Generation
 router.post("/generate-formula", async (req, res) => {
     try {
         const { prompt } = req.body;
-        if (!prompt) {
-            return res.status(400).json({ message: "Prompt is required" });
-        }
+        if (!prompt) return res.status(400).json({ message: "Prompt is required" });
 
-        // Gemini ko specific instruction dena taaki sirf formula mile
-        const aiPrompt = `Act as an Excel Expert. Generate only the Excel formula for this requirement: ${prompt}. Return only the formula text, nothing else.`;
-        
+        const aiPrompt = `
+            You are an Excel Expert. 
+            User Request: "${prompt}"
+            Provide ONLY the Excel formula as the output. No explanation, just the formula without any markdown formatting or backticks.
+        `;
+
         const result = await executePrompt(aiPrompt);
         res.status(200).json({ formula: result });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "AI processing failed" });
+        console.error("Formula Error:", error);
+        res.status(500).json({ message: "Error generating formula" });
+    }
+});
+// New Route for AI Chat Queries based on Uploaded Data
+router.post("/chat/query", async (req, res) => {
+    try {
+        const { query, file } = req.body; 
+        // Note: 'file' here MUST be the 'path' (e.g., 'uploads/excelFile-123.xlsx')
+        
+        if (!query || !file) {
+            return res.status(400).json({ message: "Query and file path are required" });
+        }
+
+        // 1. Check if file exists on the server
+        if (!fs.existsSync(file)) {
+            return res.status(404).json({ message: "File not found on server. Please upload again." });
+        }
+
+        // 2. Read the Excel/CSV file
+        const workbook = xlsx.readFile(file);
+        const sheetName = workbook.SheetNames[0]; // Get the first sheet
+        const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+
+        // 3. Prevent Token Overload
+        // AI models have limits. We send the first 50 rows so Gemini understands the structure and data.
+        const dataSample = JSON.stringify(sheetData.slice(0, 50)); 
+
+        // 4. Construct the Prompt with the actual data
+        const aiPrompt = `
+            You are an expert Excel Data Assistant. 
+            The user has uploaded a dataset. Here is a JSON sample of the first 50 rows:
+            ${dataSample}
+            
+            Based strictly on this data context, answer the user's question: 
+            "${query}"
+            
+            Keep your answer helpful, concise, and accurate based on the columns provided.
+        `;
+        
+        // 5. Send to Gemini
+        const result = await executePrompt(aiPrompt);
+        
+        res.status(200).json({ response: result });
+    } catch (error) {
+        console.error("Chat Query Error:", error);
+        res.status(500).json({ message: "AI chat processing failed" });
     }
 });
 

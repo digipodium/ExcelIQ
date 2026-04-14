@@ -12,6 +12,10 @@ app.use('/file', require('./router/fileRouter'));
 app.use('/uploads', express.static('uploads'));
 app.use('/admin', require('./router/adminRouter'));
 
+
+const AIRouter = require('./router/AIRouter');
+app.use('/', AIRouter);
+
 app.get('/', (req, res) => {
   res.send('response from express');
 });
