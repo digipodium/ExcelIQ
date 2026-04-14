@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { BarChart3, PieChart, LineChart, Palette } from 'lucide-react';
+import { BarChart3, PieChart, LineChart, Palette, UploadCloud } from 'lucide-react';
 import * as d3 from 'd3';
+import FileUpload from './FileUpload';
 
 const palettes = {
   indigo: {
@@ -16,25 +17,11 @@ const palettes = {
   },
 };
 
-// --- Sample dataset ---
-const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const sampleData = months.map((m, i) => ({
-  label: m,
-  value: Math.round(30 + Math.sin(i / 1.8) * 20 + i * 2.5),
-}));
-
-const pieSlices = [
-  { label: 'Product A', value: 38 },
-  { label: 'Product B', value: 26 },
-  { label: 'Product C', value: 19 },
-  { label: 'Product D', value: 17 },
-];
-
-// ── D3 chart hooks ──────────────────────────────────────────────
+// ── D3 chart hooks ───────────────────────────────────────────────────────────
 
 function useBarChart(svgRef, data, pal) {
   useEffect(() => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || !data.length) return;
     const el = svgRef.current;
     d3.select(el).selectAll('*').remove();
 
@@ -47,7 +34,6 @@ function useBarChart(svgRef, data, pal) {
     const x = d3.scaleBand().domain(data.map(d => d.label)).range([mg.left, W - mg.right]).padding(0.3);
     const y = d3.scaleLinear().domain([0, d3.max(data, d => d.value) * 1.15]).range([H - mg.bottom, mg.top]);
 
-    // Grid lines
     svg.append('g').attr('transform', `translate(${mg.left},0)`)
       .call(d3.axisLeft(y).ticks(5).tickSize(-(W - mg.left - mg.right)))
       .call(g => {
@@ -56,7 +42,6 @@ function useBarChart(svgRef, data, pal) {
         g.selectAll('text').attr('fill', '#94a3b8').attr('font-size', 11);
       });
 
-    // X axis
     svg.append('g').attr('transform', `translate(0,${H - mg.bottom})`)
       .call(d3.axisBottom(x).tickSize(0))
       .call(g => {
@@ -64,7 +49,6 @@ function useBarChart(svgRef, data, pal) {
         g.selectAll('text').attr('fill', '#94a3b8').attr('font-size', 11);
       });
 
-    // Bars
     const color = d3.scaleLinear().domain([0, data.length - 1]).range([pal.colors[0], pal.colors[2]]);
 
     svg.selectAll('rect').data(data).join('rect')
@@ -78,7 +62,6 @@ function useBarChart(svgRef, data, pal) {
       .attr('y', d => y(d.value))
       .attr('height', d => y(0) - y(d.value));
 
-    // Value labels on top
     svg.selectAll('text.val').data(data).join('text')
       .attr('class', 'val')
       .attr('x', d => x(d.label) + x.bandwidth() / 2)
@@ -95,7 +78,7 @@ function useBarChart(svgRef, data, pal) {
 
 function usePieChart(svgRef, data, pal) {
   useEffect(() => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || !data.length) return;
     const el = svgRef.current;
     d3.select(el).selectAll('*').remove();
 
@@ -130,25 +113,23 @@ function usePieChart(svgRef, data, pal) {
         return t => arc(interp(t));
       });
 
-    // Center label
     g.append('text').attr('text-anchor', 'middle').attr('dy', '-0.3em')
-      .attr('font-size', 22).attr('font-weight', 600).attr('fill', '#1e293b').text(total + '%');
+      .attr('font-size', 22).attr('font-weight', 600).attr('fill', '#1e293b').text(total);
     g.append('text').attr('text-anchor', 'middle').attr('dy', '1.2em')
-      .attr('font-size', 11).attr('fill', '#94a3b8').text('Total share');
+      .attr('font-size', 11).attr('fill', '#94a3b8').text('Total');
 
-    // Legend on right
     const legend = svg.append('g').attr('transform', `translate(${W / 2 + r + 16}, ${H / 2 - data.length * 14})`);
     data.forEach((d, i) => {
       const row = legend.append('g').attr('transform', `translate(0,${i * 26})`);
       row.append('rect').attr('width', 10).attr('height', 10).attr('rx', 2).attr('fill', pal.colors[i % pal.colors.length]);
-      row.append('text').attr('x', 14).attr('y', 9).attr('font-size', 11).attr('fill', '#64748b').text(`${d.label} (${d.value}%)`);
+      row.append('text').attr('x', 14).attr('y', 9).attr('font-size', 11).attr('fill', '#64748b').text(`${d.label} (${d.value})`);
     });
   }, [svgRef, data, pal]);
 }
 
 function useLineChart(svgRef, data, pal) {
   useEffect(() => {
-    if (!svgRef.current) return;
+    if (!svgRef.current || !data.length) return;
     const el = svgRef.current;
     d3.select(el).selectAll('*').remove();
 
@@ -161,7 +142,6 @@ function useLineChart(svgRef, data, pal) {
     const x = d3.scalePoint().domain(data.map(d => d.label)).range([mg.left, W - mg.right]);
     const y = d3.scaleLinear().domain([0, d3.max(data, d => d.value) * 1.2]).range([H - mg.bottom, mg.top]);
 
-    // Grid
     svg.append('g').attr('transform', `translate(${mg.left},0)`)
       .call(d3.axisLeft(y).ticks(5).tickSize(-(W - mg.left - mg.right)))
       .call(g => {
@@ -177,21 +157,17 @@ function useLineChart(svgRef, data, pal) {
         g.selectAll('text').attr('fill', '#94a3b8').attr('font-size', 11);
       });
 
-    // Area fill
     const area = d3.area().x(d => x(d.label)).y0(y(0)).y1(d => y(d.value)).curve(d3.curveCatmullRom);
     svg.append('path').datum(data).attr('fill', pal.bg[0]).attr('d', area);
 
-    // Line
     const line = d3.line().x(d => x(d.label)).y(d => y(d.value)).curve(d3.curveCatmullRom);
     const path = svg.append('path').datum(data)
       .attr('fill', 'none').attr('stroke', pal.colors[0]).attr('stroke-width', 2.5).attr('d', line);
 
-    // Animate line draw
     const len = path.node().getTotalLength();
     path.attr('stroke-dasharray', len).attr('stroke-dashoffset', len)
       .transition().duration(900).ease(d3.easeCubicOut).attr('stroke-dashoffset', 0);
 
-    // Dots
     svg.selectAll('circle').data(data).join('circle')
       .attr('cx', d => x(d.label)).attr('cy', d => y(d.value))
       .attr('r', 0).attr('fill', pal.colors[0]).attr('stroke', '#fff').attr('stroke-width', 2)
@@ -200,9 +176,72 @@ function useLineChart(svgRef, data, pal) {
   }, [svgRef, data, pal]);
 }
 
-// ── Main component ──────────────────────────────────────────────
+// ── helpers ──────────────────────────────────────────────────────────────────
 
-export default function Visualization({ fileData = [] }) {
+/**
+ * Convert the raw fileData prop (either an array of row-objects or {headers, rows})
+ * into a flat [{label, value}] array suitable for bar/line charts,
+ * and a [{label, value}] array suitable for pie charts.
+ */
+function deriveChartData(fileData) {
+  if (!fileData) return { barLine: [], pie: [] };
+
+  // Case 1: array of plain objects e.g. [{Month:'Jan', Sales:42}, …]
+  if (Array.isArray(fileData) && fileData.length) {
+    const keys = Object.keys(fileData[0]);
+    const labelKey = keys[0];
+    const numericKeys = keys.filter(k => k !== labelKey && !isNaN(parseFloat(fileData[0][k])));
+    if (!numericKeys.length) return { barLine: [], pie: [] };
+    const valueKey = numericKeys[0];
+
+    const barLine = fileData.map(row => ({
+      label: String(row[labelKey] ?? ''),
+      value: parseFloat(row[valueKey]) || 0,
+    }));
+
+    // For pie: aggregate by label key using valueKey
+    const pie = barLine.slice(0, 8); // cap at 8 slices for readability
+    return { barLine, pie };
+  }
+
+  // Case 2: { headers: [], rows: [] } (from ExcelAssistant previewData)
+  if (fileData.headers && Array.isArray(fileData.rows) && fileData.rows.length) {
+    const { headers, rows } = fileData;
+    const labelIdx = 0;
+    const numericIdx = headers.findIndex((_, i) => i > 0 && !isNaN(parseFloat(rows[0]?.[i])));
+    if (numericIdx === -1) return { barLine: [], pie: [] };
+
+    const barLine = rows.map(row => ({
+      label: String(row[labelIdx] ?? ''),
+      value: parseFloat(row[numericIdx]) || 0,
+    }));
+    const pie = barLine.slice(0, 8);
+    return { barLine, pie };
+  }
+
+  return { barLine: [], pie: [] };
+}
+
+// ── Empty state ───────────────────────────────────────────────────────────────
+
+function EmptyState() {
+  return (
+    <div className="h-[350px] w-full bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-4 text-center px-6">
+      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-100 flex items-center justify-center">
+        <UploadCloud className="w-7 h-7 text-indigo-400" />
+      </div>
+      <div>
+        <p className="font-semibold text-slate-600 text-sm">No data to visualize yet</p>
+        <p className="text-xs text-slate-400 mt-1">Upload a spreadsheet in the Excel Assistant tab to see charts here.</p>
+      </div>
+    </div>
+  );
+}
+
+// ── Main component ────────────────────────────────────────────────────────────
+
+export default function Visualization({ fileData = null }) {
+  const [localFileData, setLocalFileData] = useState(null);
   const [activeChart, setActiveChart] = useState('bar');
   const [activePalette, setActivePalette] = useState('indigo');
   const pal = palettes[activePalette];
@@ -211,36 +250,47 @@ export default function Visualization({ fileData = [] }) {
   const pieRef = useRef(null);
   const lineRef = useRef(null);
 
-  useBarChart(barRef, sampleData, pal);
-  usePieChart(pieRef, pieSlices, pal);
-  useLineChart(lineRef, sampleData, pal);
+  const dataToVisualize = localFileData || fileData;
+  const { barLine, pie } = useMemo(() => deriveChartData(dataToVisualize), [dataToVisualize]);
+  const hasData = barLine.length > 0;
+
+  useBarChart(barRef, barLine, pal);
+  usePieChart(pieRef, pie, pal);
+  useLineChart(lineRef, barLine, pal);
+
+  const handleUploadSuccess = (data) => {
+    if (data.previewData) {
+      setLocalFileData(data.previewData);
+    }
+  };
+
+  const handleFileRemoved = () => {
+    setLocalFileData(null);
+  };
 
   const stats = useMemo(() => {
-    const values = sampleData.map(d => d.value);
+    if (!hasData) return [];
+    const values = barLine.map(d => d.value);
     const max = Math.max(...values);
-    const peak = sampleData.find(d => d.value === max);
+    const peak = barLine.find(d => d.value === max);
+    const avg = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1);
     const prev = values[values.length - 2];
     const last = values[values.length - 1];
-    const growth = (((last - prev) / prev) * 100).toFixed(1);
+    const growth = prev ? (((last - prev) / prev) * 100).toFixed(1) : '—';
     return [
-      { label: 'Highest', val: peak.label },
-      { label: 'Growth', val: `${growth > 0 ? '+' : ''}${growth}%` },
-      { label: 'Points', val: String(values.length) },
+      { label: 'Peak', val: peak?.label ?? '—' },
+      { label: 'Average', val: String(avg) },
+      { label: 'Growth', val: prev ? `${growth > 0 ? '+' : ''}${growth}%` : '—' },
     ];
-  }, []);
+  }, [barLine, hasData]);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-200">
-          <BarChart3 className="w-6 h-6 text-white" />
-        </div>
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Visualization</h2>
-          <p className="text-sm text-slate-500">D3.js charts from your dataset.</p>
-        </div>
-      </div>
+      {/* ── FILE UPLOAD COMPONENT ── */}
+      <FileUpload
+        onUploadSuccess={handleUploadSuccess}
+        onFileRemoved={handleFileRemoved}
+      />
 
       <div className="grid lg:grid-cols-4 gap-6">
         {/* Sidebar controls */}
@@ -256,8 +306,7 @@ export default function Visualization({ fileData = [] }) {
                 <button
                   key={ct.id}
                   onClick={() => setActiveChart(ct.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeChart === ct.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'
-                    }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeChart === ct.id ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`}
                 >
                   <ct.icon size={18} /> {ct.label}
                 </button>
@@ -274,8 +323,7 @@ export default function Visualization({ fileData = [] }) {
                 <button
                   key={key}
                   onClick={() => setActivePalette(key)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all ${activePalette === key ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-600 border border-slate-100'
-                    }`}
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-xs font-bold transition-all ${activePalette === key ? 'bg-slate-900 text-white' : 'bg-slate-50 text-slate-600 border border-slate-100'}`}
                 >
                   <div className="flex -space-x-1">
                     {p.colors.slice(0, 3).map((c, i) => (
@@ -295,30 +343,39 @@ export default function Visualization({ fileData = [] }) {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h3 className="font-bold text-slate-800">{activeChart.toUpperCase()} Analysis</h3>
-                <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">Live Preview from Dataset</p>
+                <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">
+                  {hasData ? 'Live Preview from Dataset' : 'Awaiting data upload'}
+                </p>
               </div>
-              <span className="text-[10px] bg-blue-50 text-blue-600 font-bold px-3 py-1 rounded-full uppercase tracking-wider">
-                Active
+              <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider ${hasData ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400'}`}>
+                {hasData ? 'Active' : 'No Data'}
               </span>
             </div>
 
-            {/* D3 SVG canvases — show/hide via visibility */}
             <div className="h-[350px] w-full bg-slate-50 rounded-2xl border border-slate-100 overflow-hidden relative">
-              <svg ref={barRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: activeChart === 'bar' ? 'block' : 'none' }} />
-              <svg ref={pieRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: activeChart === 'pie' ? 'block' : 'none' }} />
-              <svg ref={lineRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: activeChart === 'line' ? 'block' : 'none' }} />
+              {hasData ? (
+                <>
+                  <svg ref={barRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: activeChart === 'bar' ? 'block' : 'none' }} />
+                  <svg ref={pieRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: activeChart === 'pie' ? 'block' : 'none' }} />
+                  <svg ref={lineRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', display: activeChart === 'line' ? 'block' : 'none' }} />
+                </>
+              ) : (
+                <EmptyState />
+              )}
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4">
-            {stats.map(s => (
-              <div key={s.label} className="bg-white p-4 border border-slate-100 rounded-2xl text-center shadow-sm">
-                <p className="text-lg font-bold text-slate-900">{s.val}</p>
-                <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{s.label}</p>
-              </div>
-            ))}
-          </div>
+          {/* Stats — only shown when data is present */}
+          {hasData && (
+            <div className="grid grid-cols-3 gap-4">
+              {stats.map(s => (
+                <div key={s.label} className="bg-white p-4 border border-slate-100 rounded-2xl text-center shadow-sm">
+                  <p className="text-lg font-bold text-slate-900">{s.val}</p>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mt-1">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>
