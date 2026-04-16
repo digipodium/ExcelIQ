@@ -23,6 +23,30 @@ router.post("/generate-formula", async (req, res) => {
         res.status(500).json({ message: "Error generating formula" });
     }
 });
+
+// Route for AI Formula Explanation
+router.post("/explain-formula", async (req, res) => {
+    try {
+        const { formula } = req.body;
+        if (!formula) return res.status(400).json({ message: "Formula is required" });
+
+        const aiPrompt = `
+            You are an Excel Expert. 
+            Explain how the following Excel formula works step-by-step:
+            Formula: "${formula}"
+            
+            Keep the explanation clear, concise, and easy for a beginner to understand.
+            Provide the explanation in plain text without markdown formatting.
+        `;
+
+        const result = await executePrompt(aiPrompt);
+        res.status(200).json({ explanation: result });
+    } catch (error) {
+        console.error("Explanation Error:", error);
+        res.status(500).json({ message: "Error generating explanation" });
+    }
+});
+
 // New Route for AI Chat Queries based on Uploaded Data
 router.post("/chat/query", async (req, res) => {
     try {
