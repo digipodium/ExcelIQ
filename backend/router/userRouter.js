@@ -49,36 +49,37 @@ router.put('/update/:id', (req, res) => {
 });
 
 //Authenticate
-router.post('/authenticate',(req,res)=>{
- const {email, password } = req.body;
+// Locate the /authenticate route in userRouter.js and update the jwt.sign section:
+
+router.post('/authenticate', (req, res) => {
+  const { email, password } = req.body;
   Model.findOne({ email, password })
-  .then((result) => {
+    .then((result) => {
+      if (result) {
+        // 1. Include "role" in the destructuring
+        const { _id, email, role } = result;
 
-    if (result){
-      const { _id, email} = result;
-
-      jwt.sign({_id, email },
-        process.env.JWT_SECRET,
-        {expiresIn: '6d'},
-        (err, token) => { 
-          if(err){
-            console.log(err);
-            res.status(500).json({message: 'error creating token'})
-          } else{
-            res.status(201).json({ token })
+        // 2. Add "role" to the JWT payload
+        jwt.sign({ _id, email, role }, 
+          process.env.JWT_SECRET, 
+          { expiresIn: '6d' }, 
+          (err, token) => {
+            if (err) {
+              console.log(err);
+              res.status(500).json({ message: 'error creating token' });
+            } else {
+              // 3. Return both token AND role to the frontend for immediate use
+              res.status(201).json({ token, role });
+            }
           }
-        }
-
-      )
-    }else{
-      res.status(403).json({message:'credentials Invalid'});
-    }
-
-  }).catch((err) => {
-    console.log(err);
-    req.status(500).json(err);
-  });
-
+        );
+      } else {
+        res.status(403).json({ message: 'credentials Invalid' });
+      }
+    })
+    .catch((err) => {
+      res.status(500).json(err);
+    });
 });
 
 const nodemailer = require("nodemailer");

@@ -10,27 +10,35 @@ const Login = () => {
   const router = useRouter(); // ← Initialize router
 
   const loginForm = useFormik({
-    initialValues: { email: '', password: '' },
-    onSubmit: (values) => {
-      axios.post(`${process.env.NEXT_PUBLIC_API_URL}/user/authenticate`, values)
-        .then((response) => {
-          toast.success('Login successfully');
-          const { token } = response.data;
-          localStorage.setItem('token', token);
+  initialValues: { email: '', password: '' },
+  onSubmit: (values) => {
+    axios.post(`${process.env.NEXT_PUBLIC_API_URL}/user/authenticate`, values)
+      .then((response) => {
+        toast.success('Login successfully');
+        
+        // 1. Get token and role from response
+        const { token, role } = response.data;
+        
+        // 2. Store them in localStorage
+        localStorage.setItem('token', token);
+        localStorage.setItem('role', role); // Helpful for future checks
 
-          // Redirect to dashboard
-          router.push('/user/Dashboard'); // ← Redirect after login
-        })
-        .catch((err) => {
-          if (err.response && err.response.status === 403) {
-            toast.error(err.response.data.message);
-          } else {
-            toast.error('Some error occurred');
-          }
-        });
-    },
-  });
-
+        // 3. Conditional Redirect
+        if (role === 'admin') {
+          router.push('/admin/Dashboard');
+        } else {
+          router.push('/user/Dashboard');
+        }
+      })
+      .catch((err) => {
+        if (err.response && err.response.status === 403) {
+          toast.error(err.response.data.message);
+        } else {
+          toast.error('Some error occurred');
+        }
+      });
+  },
+});
   return (
 
   
