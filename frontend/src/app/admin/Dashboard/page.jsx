@@ -33,10 +33,10 @@ export default function AdminDashboard() {
         if (!token) return;
 
         const [statsRes, usersRes] = await Promise.all([
-          axios.get('http://localhost:5000/api/admin/system-stats', {
+          axios.get('http://localhost:5000/admin/system-stats', {
             headers: { Authorization: `Bearer ${token}` }
           }),
-          axios.get('http://localhost:5000/api/admin/users', {
+          axios.get('http://localhost:5000/admin/users', {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);

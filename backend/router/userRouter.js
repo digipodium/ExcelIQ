@@ -1,5 +1,5 @@
 const express = require("express");
-const router = express.Router(); 
+const router = express.Router();
 const Model = require("../models/usermodel");
 const jwt = require("jsonwebtoken");
 const userAuth = require("../middlewares/auth");
@@ -19,7 +19,7 @@ router.post("/add", (req, res) => {
 });
 
 //getall
-router.get('/getall',  (req, res) => {
+router.get('/getall', (req, res) => {
   Model.find().then((result) => {
     res.status(200).json(result);
   }).catch((err) => {
@@ -49,7 +49,6 @@ router.put('/update/:id', (req, res) => {
 });
 
 //Authenticate
-// Locate the /authenticate route in userRouter.js and update the jwt.sign section:
 
 router.post('/authenticate', (req, res) => {
   const { email, password } = req.body;
@@ -60,9 +59,9 @@ router.post('/authenticate', (req, res) => {
         const { _id, email, role } = result;
 
         // 2. Add "role" to the JWT payload
-        jwt.sign({ _id, email, role }, 
-          process.env.JWT_SECRET, 
-          { expiresIn: '6d' }, 
+        jwt.sign({ _id, email, role },
+          process.env.JWT_SECRET,
+          { expiresIn: '6d' },
           (err, token) => {
             if (err) {
               console.log(err);

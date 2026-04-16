@@ -5,8 +5,7 @@ import { motion } from "framer-motion";
 import { Search, Filter, Edit2, Trash2, Check, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-export default function AdminUsers() {
-  const [users, setUsers] = useState([]);
+export default function AdminUsers({ users, setUsers }) {
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("");
   const [page, setPage] = useState(1);
@@ -15,33 +14,14 @@ export default function AdminUsers() {
   const router = useRouter();
   const usersPerPage = 5;
 
-  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "";
-
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const token = sessionStorage.getItem("token");
-        const res = await fetch(`${BASE_URL}/api/admin/users`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.status === 403) {
-          router.push("/");
-          return;
-        }
-        const data = await res.json();
-        setUsers(data);
-      } catch (err) {
-        console.error("Failed to fetch users", err);
-      }
-    };
-    fetchUsers();
-  }, [router, BASE_URL]);
+  const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000";
+  const safeUsers = Array.isArray(users) ? users : [];
 
   const deleteUser = async (id) => {
     if (!window.confirm("Delete this user?")) return;
     try {
-      const token = sessionStorage.getItem("token");
-      await fetch(`${BASE_URL}/api/admin/users/${id}`, {
+      const token = localStorage.getItem("token");
+      await fetch(`${BASE_URL}/admin/users/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -53,11 +33,11 @@ export default function AdminUsers() {
 
   const saveEdit = async (id) => {
     try {
-      const token = sessionStorage.getItem("token");
+      const token = localStorage.getItem("token");
       const body = { ...formState };
       if (!body.password) delete body.password;
 
-      const res = await fetch(`${BASE_URL}/api/admin/users/${id}`, {
+      const res = await fetch(`${BASE_URL}/admin/users/${id}`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -74,7 +54,7 @@ export default function AdminUsers() {
     }
   };
 
-  const filteredUsers = users.filter((u) => {
+  const filteredUsers = safeUsers.filter((u) => {
     const matchSearch = u.name?.toLowerCase().includes(search.toLowerCase()) || u.email?.toLowerCase().includes(search.toLowerCase());
     const matchRole = roleFilter ? u.role === roleFilter : true;
     return matchSearch && matchRole;
