@@ -64,8 +64,7 @@ export default function AdminUsers({ users, setUsers }) {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8">
-      <h1 className="text-2xl font-bold text-[#2E3C43] mb-8">Manage Users</h1>
-      
+
       {/* Search & Filter */}
       <div className="flex flex-col md:flex-row gap-4 mb-6">
         <div className="relative flex-1">

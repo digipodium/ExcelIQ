@@ -1,12 +1,40 @@
-import React from 'react';
-import { Table, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Table, X, ChevronLeft, ChevronRight } from 'lucide-react';
 
-export default function DatasetExplorerModal({ isOpen, onClose, fileData, fileName }) {
+export default function DatasetView({ isOpen, onClose, fileData, fileName }) {
+  // 🔥 Page track karne ke liye state
+  const [currentPage, setCurrentPage] = useState(1);
+  const MAX_ROWS = 100;
+
+  // Jab bhi modal open ho, page 1 par reset kar dein
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentPage(1);
+    }
+  }, [isOpen, fileData]);
+
   if (!isOpen) return null;
+
+  const totalRows = fileData?.rows?.length || 0;
+  const totalPages = Math.ceil(totalRows / MAX_ROWS);
+
+  // Kaunsi rows dikhani hain uska calculation
+  const startIndex = (currentPage - 1) * MAX_ROWS;
+  const endIndex = startIndex + MAX_ROWS;
+  const displayRows = fileData?.rows?.slice(startIndex, endIndex) || [];
+
+  const handleNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  const handlePrevPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 backdrop-blur-md bg-slate-900/40">
       <div className="bg-white rounded-3xl w-full max-w-7xl h-[90vh] flex flex-col shadow-2xl overflow-hidden border border-slate-200" onClick={(e) => e.stopPropagation()}>
+        
         {/* Modal Header */}
         <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
           <div className="flex items-center gap-4">
@@ -41,8 +69,8 @@ export default function DatasetExplorerModal({ isOpen, onClose, fileData, fileNa
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-600">
-                  {fileData?.rows?.length > 0 ? (
-                    fileData.rows.map((row, rowIdx) => (
+                  {displayRows.length > 0 ? (
+                    displayRows.map((row, rowIdx) => (
                       <tr key={rowIdx} className="hover:bg-slate-50/50 transition-colors">
                         {fileData.headers.map((_, colIdx) => (
                           <td key={colIdx} className="py-3 px-4 max-w-xs truncate" title={row[colIdx] !== undefined ? String(row[colIdx]) : ''}>
@@ -66,7 +94,36 @@ export default function DatasetExplorerModal({ isOpen, onClose, fileData, fileNa
         
         {/* Modal Footer */}
         <div className="px-6 py-4 border-t border-slate-100 bg-white shrink-0 flex items-center justify-between text-sm text-slate-500">
-          <p className="font-medium">Showing <span className="text-indigo-600 font-bold">{fileData?.rows?.length || 0}</span> rows</p>
+          
+          <p className="font-medium">
+            Showing <span className="text-indigo-600 font-bold">{startIndex + 1}</span> to <span className="text-indigo-600 font-bold">{Math.min(endIndex, totalRows)}</span> of <span className="text-indigo-600 font-bold">{totalRows}</span> rows
+          </p>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+                className="p-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+              
+              <span className="font-semibold text-slate-700 px-2">
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <button 
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+                className="p-2 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg transition-colors flex items-center"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          )}
+
           <button 
             onClick={onClose}
             className="px-6 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition-colors shadow-sm"
@@ -74,6 +131,7 @@ export default function DatasetExplorerModal({ isOpen, onClose, fileData, fileNa
             Close View
           </button>
         </div>
+
       </div>
     </div>
   );

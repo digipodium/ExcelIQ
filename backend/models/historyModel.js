@@ -1,8 +1,13 @@
-const {Schema, model} = require('../connection');
+// ExcelIQ/backend/models/historyModel.js
+const { Schema, model } = require('../connection');
 
 const mySchema = new Schema({
     userId: { type: Schema.Types.ObjectId, ref: 'users', required: true },
-    queryType: { type: String, required: true }, // e.g. 'formula' or 'data-insight'
+
+    // Naya field add kiya: Reference to uploaded file
+    fileId: { type: Schema.Types.ObjectId, ref: 'files', required: false },
+
+    queryType: { type: String, required: true }, // 'formula', 'explain', ya 'chat'
     prompt: { type: String, required: true },
     response: { type: String, required: true },
 }, { timestamps: true });

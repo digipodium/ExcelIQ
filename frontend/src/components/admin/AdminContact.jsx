@@ -15,10 +15,6 @@ export default function AdminContact() {
 
   return (
     <div className="space-y-6 max-w-4xl">
-      <div>
-        <h2 className="text-3xl font-extrabold text-slate-900">Contact Queries</h2>
-        <p className="text-slate-500 mt-1">Handle user support messages and submit internal queries.</p>
-      </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Incoming queries */}

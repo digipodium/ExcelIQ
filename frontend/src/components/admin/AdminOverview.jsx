@@ -4,10 +4,6 @@ import { Users, FileText, ShieldAlert, User, Activity } from 'lucide-react';
 export default function AdminOverview({ stats, users }) {
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-extrabold text-slate-900">System Overview</h2>
-        <p className="text-slate-500 mt-1">Real-time platform monitoring.</p>
-      </div>
 
       {/* Stat Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">

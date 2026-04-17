@@ -33,7 +33,11 @@ function getFileIcon(name = '') {
 function DropZone({ dragOver, onDragOver, onDragLeave, onDrop, onBrowse, inputRef, onFileChange }) {
   return (
     <div
-      className={`fu-dropzone ${dragOver ? 'fu-dropzone--active' : ''}`}
+      className={`relative border-2 border-dashed rounded-[24px] p-12 text-center cursor-pointer transition-all duration-200 outline-none w-full
+        ${dragOver 
+          ? 'border-indigo-500 bg-indigo-50 scale-[1.015]' 
+          : 'border-indigo-200 bg-white hover:border-indigo-500 hover:bg-indigo-50 focus-visible:border-indigo-500 focus-visible:bg-indigo-50'
+        }`}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
@@ -48,30 +52,33 @@ function DropZone({ dragOver, onDragOver, onDragLeave, onDrop, onBrowse, inputRe
         id="fu-file-input"
         type="file"
         accept={ACCEPTED_EXTENSIONS}
-        className="fu-hidden"
+        className="hidden"
         onChange={onFileChange}
       />
 
-      <div className="fu-dropzone__inner">
-        {/* animated cloud icon */}
-        <div className={`fu-upload-icon ${dragOver ? 'fu-upload-icon--float' : ''}`}>
-          <div className="fu-upload-icon__ring fu-upload-icon__ring--1" />
-          <div className="fu-upload-icon__ring fu-upload-icon__ring--2" />
-          <CloudUpload className="fu-upload-icon__svg" />
+      <div className="flex flex-col items-center gap-4">
+        {/* icon cluster */}
+        <div className={`relative w-[72px] h-[72px] flex items-center justify-center transition-transform duration-300 ${dragOver ? '-translate-y-2' : ''}`}>
+          {/* using border opacity to simulate the rings */}
+          <div className="absolute inset-0 rounded-full border-[1.5px] border-indigo-400/50 animate-ping" style={{ animationDuration: '3s' }} />
+          <div className="absolute -inset-2.5 rounded-full border-[1.5px] border-indigo-400/30 animate-pulse" />
+          <CloudUpload className="relative z-10 w-8 h-8 text-indigo-500" />
         </div>
 
-        <div className="fu-dropzone__text">
-          <p className="fu-dropzone__headline">
+        <div className="text-center">
+          <p className="text-[15px] font-semibold text-slate-800 leading-relaxed">
             {dragOver ? 'Release to upload' : (
-              <>Drop your spreadsheet here or <span className="fu-link">browse</span></>
+              <>Drop your spreadsheet here or <span className="text-indigo-500 underline underline-offset-2">browse</span></>
             )}
           </p>
-          <p className="fu-dropzone__sub">CSV, XLSX, XLS &bull; Max {MAX_SIZE_MB} MB</p>
+          <p className="text-xs text-slate-400 mt-1">CSV, XLSX, XLS &bull; Max {MAX_SIZE_MB} MB</p>
         </div>
 
-        <div className="fu-badge-row">
+        <div className="flex flex-wrap justify-center gap-2">
           {['CSV', 'XLSX', 'XLS'].map((fmt) => (
-            <span key={fmt} className="fu-badge">{fmt}</span>
+            <span key={fmt} className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-100 text-indigo-700 tracking-wider">
+              {fmt}
+            </span>
           ))}
         </div>
       </div>
@@ -79,34 +86,37 @@ function DropZone({ dragOver, onDragOver, onDragLeave, onDrop, onBrowse, inputRe
   );
 }
 
-function FileCard({ file, status, progress, onRemove, onUpload, uploading }) {
+function FileCard({ file, status, progress, onRemove, onUpload, uploading, sizeDisplay }) {
   const iconColor = getFileIcon(file.name);
-  const ext = file.name.split('.').pop()?.toUpperCase();
+  const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
 
   return (
-    <div className="fu-card">
+    <div className="relative bg-white border-[1.5px] border-slate-200 rounded-[20px] p-5 shadow-[0_2px_12px_0_rgba(99,102,241,0.08)] overflow-hidden transition-shadow duration-200 hover:shadow-[0_4px_20px_0_rgba(99,102,241,0.14)] w-full">
       {/* glow bar that fills based on progress */}
       {status === 'uploading' && (
-        <div className="fu-progress-bar" style={{ width: `${progress}%` }} />
+        <div className="absolute top-0 left-0 h-[3px] bg-gradient-to-r from-indigo-500 to-purple-400 rounded-t-[3px] transition-all duration-300 ease-in-out" style={{ width: `${progress}%` }} />
       )}
 
-      <div className="fu-card__top">
+      <div className="flex items-center gap-3.5">
         {/* file type badge */}
-        <div className="fu-file-badge" style={{ '--badge-color': iconColor }}>
-          <FileSpreadsheet className="fu-file-badge__icon" />
-          <span className="fu-file-badge__ext">{ext}</span>
+        <div 
+          className="w-[46px] h-[46px] rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[1px] shrink-0" 
+          style={{ backgroundColor: `${iconColor}15`, borderColor: `${iconColor}40` }}
+        >
+          <FileSpreadsheet className="w-[18px] h-[18px]" style={{ color: iconColor }} />
+          <span className="text-[8px] font-extrabold tracking-[0.06em]" style={{ color: iconColor }}>{ext}</span>
         </div>
 
-        <div className="fu-card__info">
-          <p className="fu-card__name" title={file.name}>{file.name}</p>
-          <p className="fu-card__meta">{formatBytes(file.size)}</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis" title={file.name}>{file.name}</p>
+          <p className="text-[11px] text-slate-400 mt-0.5">{sizeDisplay || formatBytes(file.size)}</p>
         </div>
 
-        <div className="fu-card__actions">
+        <div className="flex items-center gap-2 shrink-0">
           {status === 'idle' && (
             <button
               id="fu-upload-btn"
-              className="fu-btn fu-btn--primary"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 border-none bg-indigo-500 text-white hover:bg-indigo-600 hover:-translate-y-[1px] hover:shadow-[0_4px_12px_rgba(99,102,241,0.4)] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none"
               onClick={onUpload}
               disabled={uploading}
             >
@@ -114,19 +124,19 @@ function FileCard({ file, status, progress, onRemove, onUpload, uploading }) {
             </button>
           )}
           {status === 'uploading' && (
-            <button className="fu-btn fu-btn--ghost" disabled>
-              <Loader2 size={14} className="fu-spin" /> {progress}%
+            <button className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold cursor-not-allowed transition-all duration-150 border-none bg-slate-100 text-slate-500" disabled>
+              <Loader2 size={14} className="animate-spin" /> {progress}%
             </button>
           )}
           {status === 'done' && (
-            <span className="fu-status fu-status--done">
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-500">
               <CheckCircle2 size={15} /> Uploaded
             </span>
           )}
           {status === 'error' && (
             <button
               id="fu-retry-btn"
-              className="fu-btn fu-btn--danger"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition-all duration-150 bg-red-50 text-red-500 border border-red-200 hover:bg-red-100"
               onClick={onUpload}
             >
               <RefreshCw size={14} /> Retry
@@ -135,7 +145,7 @@ function FileCard({ file, status, progress, onRemove, onUpload, uploading }) {
 
           <button
             id="fu-remove-btn"
-            className="fu-close-btn"
+            className="w-8 h-8 rounded-lg flex items-center justify-center bg-transparent text-slate-400 border-[1.5px] border-slate-200 cursor-pointer transition-all duration-150 hover:bg-red-50 hover:text-red-500 hover:border-red-200"
             onClick={onRemove}
             aria-label="Remove file"
           >
@@ -145,43 +155,23 @@ function FileCard({ file, status, progress, onRemove, onUpload, uploading }) {
       </div>
 
       {/* status strip */}
-      <div className="fu-card__strip">
-        {status === 'idle' && (
-          <span className="fu-strip fu-strip--idle">
-            <AlertCircle size={12} /> Ready to upload
-          </span>
-        )}
-        {status === 'uploading' && (
-          <span className="fu-strip fu-strip--uploading">
-            <Loader2 size={12} className="fu-spin" /> Uploading &amp; parsing data…
-          </span>
-        )}
-        {status === 'done' && (
-          <span className="fu-strip fu-strip--done">
-            <CheckCircle2 size={12} /> Data ready — start asking questions!
-          </span>
-        )}
-        {status === 'error' && (
-          <span className="fu-strip fu-strip--error">
-            <AlertCircle size={12} /> Upload failed. Click Retry.
-          </span>
-        )}
+      <div className={`mt-3.5 px-3 py-2.5 rounded-lg text-xs font-medium inline-flex items-center w-full gap-1.5
+        ${status === 'idle' ? 'bg-slate-50 text-slate-500' : ''}
+        ${status === 'uploading' ? 'bg-indigo-50 text-indigo-500' : ''}
+        ${status === 'done' ? 'bg-emerald-50 text-emerald-500' : ''}
+        ${status === 'error' ? 'bg-red-50 text-red-500' : ''}
+      `}>
+        {status === 'idle' && <><AlertCircle size={12} /> Ready to upload</>}
+        {status === 'uploading' && <><Loader2 size={12} className="animate-spin" /> Uploading &amp; parsing data…</>}
+        {status === 'done' && <><CheckCircle2 size={12} /> Data ready — start asking questions!</>}
+        {status === 'error' && <><AlertCircle size={12} /> Upload failed. Click Retry.</>}
       </div>
     </div>
   );
 }
 
-// ─── main component ──────────────────────────────────────────────────────────
-/**
- * FileUpload
- *
- * Props:
- *  onUploadSuccess(data)  – called with the backend response once upload succeeds.
- *                           data = { fileMeta, path, previewData }
- *  onFileRemoved()        – called when the user discards the file.
- *  className              – optional extra class on the root wrapper.
- */
-export default function FileUpload({ onUploadSuccess, onFileRemoved, className = '' }) {
+// ─── main component
+export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFileMeta = null, className = '' }) {
   const [file, setFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState('idle'); // idle | uploading | done | error
@@ -263,292 +253,36 @@ export default function FileUpload({ onUploadSuccess, onFileRemoved, className =
     }
   };
 
+  // ── Restored state when no real File object but fileMeta available ──────
+  const displayFile = file || (persistedFileMeta ? { name: persistedFileMeta.name, size: 0 } : null);
+  const displayStatus = file ? status : (persistedFileMeta ? 'done' : 'idle');
+  const displaySizeLabel = !file && persistedFileMeta ? persistedFileMeta.size : null;
+
   return (
-    <>
-      <style>{CSS}</style>
-      <div className={`fu-root ${className}`}>
-        {!file ? (
-          <DropZone
-            dragOver={dragOver}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            onBrowse={handleBrowse}
-            inputRef={inputRef}
-            onFileChange={handleFileChange}
-          />
-        ) : (
-          <FileCard
-            file={file}
-            status={status}
-            progress={progress}
-            uploading={status === 'uploading'}
-            onRemove={handleRemove}
-            onUpload={handleUpload}
-          />
-        )}
-      </div>
-    </>
+    <div className={`w-full font-sans ${className}`}>
+      {!displayFile ? (
+        <DropZone
+          dragOver={dragOver}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          onBrowse={handleBrowse}
+          inputRef={inputRef}
+          onFileChange={handleFileChange}
+        />
+      ) : (
+        <FileCard
+          file={displayFile}
+          status={displayStatus}
+          progress={progress}
+          uploading={displayStatus === 'uploading'}
+          sizeDisplay={displaySizeLabel}
+          onRemove={handleRemove}
+          onUpload={handleUpload}
+        />
+      )}
+    </div>
   );
 }
 
-// ─── scoped CSS ──────────────────────────────────────────────────────────────
-const CSS = `
-/* ── root ── */
-.fu-root { width: 100%; font-family: inherit; }
-.fu-hidden { display: none; }
 
-/* ── drop zone ── */
-.fu-dropzone {
-  position: relative;
-  border: 2px dashed #c7d2fe;
-  border-radius: 24px;
-  padding: 48px 24px;
-  text-align: center;
-  cursor: pointer;
-  background: #ffffff;
-  transition: border-color .2s, background .2s, transform .15s;
-  outline: none;
-}
-.fu-dropzone:hover,
-.fu-dropzone:focus-visible {
-  border-color: #6366f1;
-  background: #eef2ff;
-}
-.fu-dropzone--active {
-  border-color: #6366f1;
-  background: #eef2ff;
-  transform: scale(1.015);
-}
-.fu-dropzone__inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-/* ── animated upload icon ── */
-.fu-upload-icon {
-  position: relative;
-  width: 72px;
-  height: 72px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: transform .3s;
-}
-.fu-upload-icon--float {
-  animation: fu-float .8s ease-in-out infinite alternate;
-}
-@keyframes fu-float {
-  from { transform: translateY(0); }
-  to   { transform: translateY(-8px); }
-}
-.fu-upload-icon__svg {
-  width: 32px;
-  height: 32px;
-  color: #6366f1;
-  position: relative;
-  z-index: 1;
-}
-.fu-upload-icon__ring {
-  position: absolute;
-  border-radius: 50%;
-  border: 1.5px solid #818cf8;
-  opacity: .5;
-}
-.fu-upload-icon__ring--1 {
-  inset: 0;
-  animation: fu-pulse 2s ease-in-out infinite;
-}
-.fu-upload-icon__ring--2 {
-  inset: -10px;
-  animation: fu-pulse 2s ease-in-out infinite .5s;
-}
-@keyframes fu-pulse {
-  0%, 100% { opacity: .5; transform: scale(1); }
-  50%       { opacity: .15; transform: scale(1.12); }
-}
-
-/* ── drop zone text ── */
-.fu-dropzone__headline {
-  font-size: 15px;
-  font-weight: 600;
-  color: #1e293b;
-  line-height: 1.4;
-}
-.fu-dropzone__sub {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-top: 4px;
-}
-.fu-link { color: #6366f1; text-decoration: underline; text-underline-offset: 2px; }
-
-/* ── format badges ── */
-.fu-badge-row { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-.fu-badge {
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #e0e7ff;
-  color: #4338ca;
-  letter-spacing: .04em;
-}
-
-/* ── file card ── */
-.fu-card {
-  position: relative;
-  background: #ffffff;
-  border: 1.5px solid #e2e8f0;
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 2px 12px 0 rgba(99,102,241,.08);
-  overflow: hidden;
-  transition: box-shadow .2s;
-}
-.fu-card:hover { box-shadow: 0 4px 20px 0 rgba(99,102,241,.14); }
-
-/* progress glow bar at top of card */
-.fu-progress-bar {
-  position: absolute;
-  top: 0; left: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #6366f1, #a78bfa);
-  border-radius: 3px 3px 0 0;
-  transition: width .3s ease;
-}
-
-.fu-card__top {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-/* file type badge */
-.fu-file-badge {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
-  background: color-mix(in srgb, var(--badge-color) 12%, #fff);
-  border: 1.5px solid color-mix(in srgb, var(--badge-color) 25%, #fff);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1px;
-  flex-shrink: 0;
-}
-.fu-file-badge__icon {
-  width: 18px;
-  height: 18px;
-  color: var(--badge-color);
-}
-.fu-file-badge__ext {
-  font-size: 8px;
-  font-weight: 800;
-  color: var(--badge-color);
-  letter-spacing: .06em;
-}
-
-.fu-card__info { flex: 1; min-width: 0; }
-.fu-card__name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1e293b;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.fu-card__meta { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-
-.fu-card__actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
-
-/* buttons */
-.fu-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 7px 14px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all .15s;
-  border: none;
-}
-.fu-btn--primary {
-  background: #6366f1;
-  color: #fff;
-}
-.fu-btn--primary:hover:not(:disabled) {
-  background: #4f46e5;
-  box-shadow: 0 4px 12px rgba(99,102,241,.4);
-  transform: translateY(-1px);
-}
-.fu-btn--ghost {
-  background: #f1f5f9;
-  color: #64748b;
-  cursor: not-allowed;
-}
-.fu-btn--danger {
-  background: #fef2f2;
-  color: #ef4444;
-  border: 1px solid #fecaca;
-}
-.fu-btn--danger:hover {
-  background: #fee2e2;
-}
-.fu-btn:disabled { opacity: .6; cursor: not-allowed; transform: none !important; }
-
-.fu-close-btn {
-  width: 32px; height: 32px;
-  border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  background: transparent;
-  color: #94a3b8;
-  border: 1.5px solid #e2e8f0;
-  cursor: pointer;
-  transition: all .15s;
-}
-.fu-close-btn:hover {
-  background: #fef2f2;
-  color: #ef4444;
-  border-color: #fecaca;
-}
-
-.fu-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-}
-.fu-status--done { color: #10b981; }
-
-/* ── status strip at bottom of card ── */
-.fu-card__strip {
-  margin-top: 14px;
-  padding: 9px 12px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 500;
-}
-.fu-strip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-.fu-strip--idle     { color: #64748b; }
-.fu-strip--uploading { color: #6366f1; }
-.fu-strip--done     { color: #10b981; }
-.fu-strip--error    { color: #ef4444; }
-.fu-card__strip:has(.fu-strip--idle)      { background: #f8fafc; }
-.fu-card__strip:has(.fu-strip--uploading) { background: #eef2ff; }
-.fu-card__strip:has(.fu-strip--done)      { background: #ecfdf5; }
-.fu-card__strip:has(.fu-strip--error)     { background: #fef2f2; }
-
-/* ── spinner ── */
-.fu-spin { animation: fu-spin .8s linear infinite; }
-@keyframes fu-spin { to { transform: rotate(360deg); } }
-`;

@@ -3,6 +3,8 @@ const router = express.Router();
 const { executePrompt } = require("../utils/gemini.js");
 const xlsx = require('xlsx'); // <-- Import the new library
 const fs = require('fs');
+const HistoryModel = require('../models/historyModel');
+const userAuth = require('../middlewares/auth');
 
 // Route for AI Formula Generation
 router.post("/generate-formula", async (req, res) => {
@@ -48,9 +50,9 @@ router.post("/explain-formula", async (req, res) => {
 });
 
 // New Route for AI Chat Queries based on Uploaded Data
-router.post("/chat/query", async (req, res) => {
+router.post("/chat/query", userAuth, async (req, res) => {
     try {
-        const { query, file } = req.body; 
+        const { query, file, fileId } = req.body; 
         // Note: 'file' here MUST be the 'path' (e.g., 'uploads/excelFile-123.xlsx')
         
         if (!query || !file) {
@@ -69,7 +71,7 @@ router.post("/chat/query", async (req, res) => {
 
         // 3. Prevent Token Overload
         // AI models have limits. We send the first 50 rows so Gemini understands the structure and data.
-        const dataSample = JSON.stringify(sheetData.slice(0, 50)); 
+        const dataSample = JSON.stringify(sheetData); 
 
         // 4. Construct the Prompt with the actual data
         const aiPrompt = `
@@ -85,6 +87,15 @@ router.post("/chat/query", async (req, res) => {
         
         // 5. Send to Gemini
         const result = await executePrompt(aiPrompt);
+        
+        // Save chat query history to DB
+        await HistoryModel.create({
+            userId: req.user._id,
+            fileId: fileId || null,
+            queryType: 'chat',
+            prompt: query,
+            response: result
+        });
         
         res.status(200).json({ response: result });
     } catch (error) {

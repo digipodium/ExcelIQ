@@ -45,13 +45,7 @@ export default function FormulaGenerator() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <div className="w-12 h-12 rounded-2xl bg-violet-600 flex items-center justify-center shadow-lg"><FunctionSquare className="text-white w-6 h-6" /></div>
-        <div>
-          <h2 className="text-2xl font-bold text-slate-900">Formula Generator</h2>
-          <p className="text-sm text-slate-500">Describe what you need — get an Excel formula instantly.</p>
-        </div>
-      </div>
+
 
       <div className="grid lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
