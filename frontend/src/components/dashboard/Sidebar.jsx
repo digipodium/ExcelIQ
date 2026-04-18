@@ -15,13 +15,13 @@ export default function Sidebar({ activeTab, onTabChange }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleLogout = () => {
-    // 1. Wipe auth token
-    localStorage.removeItem('token');
-    // 2. Wipe all ExcelAssistant persisted data
-    ['ea_chatHistory', 'ea_fileMeta', 'ea_uploadedFilePath', 'ea_fileData'].forEach(
-      (key) => localStorage.removeItem(key)
-    );
-    // 3. Hard redirect — prevents React useEffects from re-saving cleared data
+    // Clear entire app session state from localStorage
+    [
+      'token',
+      'ea_chatHistory', 'ea_fileMeta', 'ea_uploadedFilePath', 'ea_fileData', 'ea_suggestedCharts',
+      'viz_fileMeta', 'viz_uploadedFilePath', 'viz_fileData', 'viz_suggestedCharts',
+      'dashboard_activeTab',
+    ].forEach((key) => localStorage.removeItem(key));
     window.location.href = '/login';
   };
 

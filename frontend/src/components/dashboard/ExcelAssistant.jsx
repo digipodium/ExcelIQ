@@ -27,55 +27,67 @@ export default function ExcelAssistant() {
   const [isDownloading, setIsDownloading] = useState(false);
   const chatEndRef = useRef(null);
 
+  // Prevents the persistence effect from writing null to localStorage during the
+  // brief window when ExcelAssistant mounts before the tab switches away.
+  const isHydrated = useRef(false);
 
-
-  // load localStorage AFTER mount (client only) ─────────
+  // Load persisted state from localStorage on first client render.
   useEffect(() => {
     setChatHistory(safeGetItem('ea_chatHistory', []));
     setFileMeta(safeGetItem('ea_fileMeta', null));
     setUploadedFilePath(safeGetItem('ea_uploadedFilePath', null));
     setFileData(safeGetItem('ea_fileData', { headers: [], rows: [] }));
-  }, []); // runs once after first render — never on the server
+    isHydrated.current = true;
+  }, []);
 
+  // Persist chat history whenever it changes.
   useEffect(() => {
     try { localStorage.setItem('ea_chatHistory', JSON.stringify(chatHistory)); }
     catch { /* storage quota exceeded */ }
   }, [chatHistory]);
 
+  // Persist file-related state, but only after the initial hydration load.
+  // Skipping before hydration prevents overwriting valid data with null defaults.
   useEffect(() => {
+    if (!isHydrated.current) return;
     try {
-      localStorage.setItem('ea_fileMeta', JSON.stringify(fileMeta));
-      localStorage.setItem('ea_uploadedFilePath', JSON.stringify(uploadedFilePath));
-      localStorage.setItem('ea_fileData', JSON.stringify(fileData));
+      if (fileMeta !== null) {
+        localStorage.setItem('ea_fileMeta', JSON.stringify(fileMeta));
+        localStorage.setItem('ea_uploadedFilePath', JSON.stringify(uploadedFilePath));
+        localStorage.setItem('ea_fileData', JSON.stringify(fileData));
+      }
     } catch { /* storage quota exceeded */ }
   }, [fileMeta, uploadedFilePath, fileData]);
 
-  // ── upload callbacks (from FileUpload component)
   const handleUploadSuccess = (data) => {
     setFileMeta(data.fileMeta);
     setUploadedFilePath(data.path);
     if (data.previewData) setFileData(data.previewData);
+    if (data.suggestedCharts) {
+      try { localStorage.setItem('ea_suggestedCharts', JSON.stringify(data.suggestedCharts)); }
+      catch { /* storage quota exceeded */ }
+    }
   };
 
+  // Clear all state and localStorage keys when the user removes the uploaded file.
   const handleFileRemoved = () => {
     setFileMeta(null);
     setUploadedFilePath(null);
     setFileData({ headers: [], rows: [] });
     setChatHistory([]);
     setIsPreviewOpen(false);
-    // ── Cleanup localStorage ────────────────────────────────────────────
     if (typeof window !== 'undefined') {
       localStorage.removeItem('ea_fileMeta');
       localStorage.removeItem('ea_uploadedFilePath');
       localStorage.removeItem('ea_fileData');
       localStorage.removeItem('ea_chatHistory');
+      localStorage.removeItem('ea_suggestedCharts');
     }
   };
 
   // ── FUNCTION: DOWNLOAD DATA (For the blue button in Sidebar) ──
   const handleDownloadData = async () => {
     const currentFileId = fileMeta?.id;
-
     if (!currentFileId) {
       toast.error("File ID is missing! Please upload the file again.");
       return;
@@ -94,17 +106,13 @@ export default function ExcelAssistant() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-
-      const fileNameToSave = fileMeta?.name || 'dataset.xlsx';
-      link.setAttribute('download', fileNameToSave);
-
+      link.setAttribute('download', fileMeta?.name || 'dataset.xlsx');
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
 
       toast.success('File downloaded successfully!', { id: toastId });
-
     } catch (error) {
       console.error("Download Error:", error);
       toast.error('Failed to download file. Please try again.', { id: toastId });
@@ -126,13 +134,8 @@ export default function ExcelAssistant() {
       const token = localStorage.getItem('token');
       const res = await axios.post('http://localhost:5000/chat/query',
         { query: queryToSend, file: uploadedFilePath, fileId: fileMeta?.id },
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        }
+        { headers: { 'Authorization': `Bearer ${token}` } }
       );
-
       setChatHistory(prev => [...prev, { role: 'assistant', content: res.data.response }]);
     } catch (error) {
       console.error(error);
@@ -144,9 +147,9 @@ export default function ExcelAssistant() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-5">
+    <div className="h-full flex flex-col gap-5">
+      <div className="flex-1 min-h-0 grid lg:grid-cols-3 gap-5">
+        <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
 
           {/* ── FILE UPLOAD COMPONENT ── */}
           <FileUpload
@@ -155,8 +158,8 @@ export default function ExcelAssistant() {
             persistedFileMeta={fileMeta}
           />
 
-          {/* CHAT BOX */}
-          <div className="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col h-[500px]">
+          {/* Chat box grows to fill remaining height in the column */}
+          <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col">
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
               {chatHistory.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
@@ -207,7 +210,7 @@ export default function ExcelAssistant() {
           </div>
         </div>
 
-        {/* SIDEBAR: FILE DETAILS */}
+        {/* Right sidebar: file metadata and dataset preview */}
         <div className="space-y-5">
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
@@ -222,10 +225,7 @@ export default function ExcelAssistant() {
                   { icon: Rows3, label: 'Total Rows', value: fileMeta.rows },
                   { icon: Columns3, label: 'Columns', value: fileMeta.columns },
                 ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100"
-                  >
+                  <div key={item.label} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-100">
                     <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
                       <item.icon className="w-4 h-4 text-slate-400" />
                       {item.label}
@@ -234,7 +234,6 @@ export default function ExcelAssistant() {
                   </div>
                 ))}
 
-                {/* ── MAIN DOWNLOAD BUTTON ── */}
                 <button
                   onClick={handleDownloadData}
                   disabled={isDownloading}
@@ -243,7 +242,6 @@ export default function ExcelAssistant() {
                   {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
                   {isDownloading ? 'Downloading...' : 'Download Data'}
                 </button>
-
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-10 text-center">
@@ -269,7 +267,6 @@ export default function ExcelAssistant() {
                 </div>
               </div>
 
-              {/* Miniature Dataset Preview */}
               <div className="relative mt-2 border border-slate-100 rounded-xl overflow-hidden bg-white/50 opacity-80 group-hover:opacity-100 transition-opacity">
                 <table className="w-full text-left whitespace-nowrap table-fixed">
                   <thead className="bg-slate-50">

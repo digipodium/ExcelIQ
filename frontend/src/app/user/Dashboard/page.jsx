@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Toaster, toast } from 'react-hot-toast'; 
+import { toast } from 'react-hot-toast';
 import axios from 'axios';
 import Sidebar from '@/components/dashboard/Sidebar';
 import ExcelAssistant from '@/components/dashboard/ExcelAssistant';
@@ -8,7 +8,6 @@ import FormulaGenerator from '@/components/dashboard/FormulaGenerator';
 import ReportGeneration from '@/components/dashboard/ReportGeneration';
 import Visualization from '@/components/dashboard/Visualization';
 
-// Tab titles mapping
 const tabTitles = {
   assistant: 'Excel Assistant',
   formula: 'Formula Generator',
@@ -17,7 +16,10 @@ const tabTitles = {
 };
 
 export default function DashboardPage() {
+  // Server always renders 'assistant' to avoid SSR/client hydration mismatch.
+  // After mount, useEffect restores the last active tab from localStorage.
   const [activeTab, setActiveTab] = useState('assistant');
+  const [isMounted, setIsMounted] = useState(false);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
@@ -25,19 +27,24 @@ export default function DashboardPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
 
   useEffect(() => {
+    setIsMounted(true);
+    const savedTab = localStorage.getItem('dashboard_activeTab');
+    if (savedTab) setActiveTab(savedTab);
+  }, []);
+
+  // Fetch logged-in user's name and email to display in the header avatar.
+  useEffect(() => {
     const fetchUserDetails = async () => {
       try {
         const token = localStorage.getItem('token');
         if (token) {
           const payload = JSON.parse(atob(token.split('.')[1]));
           const userId = payload._id;
-          
           if (userId) {
             const res = await axios.get(`http://localhost:5000/user/getall`, {
               headers: { 'Authorization': `Bearer ${token}` }
             });
-            const allUsers = res.data;
-            const currentUser = allUsers.find(u => u._id === userId);
+            const currentUser = res.data.find(u => u._id === userId);
             if (currentUser) {
               if (currentUser.name) setUserName(currentUser.name);
               if (currentUser.email) setUserEmail(currentUser.email);
@@ -60,24 +67,15 @@ export default function DashboardPage() {
     try {
       const token = localStorage.getItem('token');
       if (!token) return toast.error('Not authenticated');
-      
       const payload = JSON.parse(atob(token.split('.')[1]));
       const userId = payload._id;
-
       if (!userId) return toast.error('User ID not found');
 
       toast.loading('Changing password...', { id: 'pwd' });
-
-      await axios.put(`http://localhost:5000/user/update/${userId}`, 
+      await axios.put(`http://localhost:5000/user/update/${userId}`,
         { password: newPassword },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        }
+        { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` } }
       );
-
       toast.success('Password changed successfully!', { id: 'pwd' });
       setIsPasswordModalOpen(false);
       setNewPassword('');
@@ -85,6 +83,16 @@ export default function DashboardPage() {
     } catch (err) {
       toast.error('Error changing password', { id: 'pwd' });
     }
+  };
+
+  // Clears all session data and redirects to login.
+  const handleLogout = () => {
+    [
+      'token', 'ea_chatHistory', 'ea_fileMeta', 'ea_uploadedFilePath',
+      'ea_fileData', 'ea_suggestedCharts', 'viz_fileMeta', 'viz_uploadedFilePath',
+      'viz_fileData', 'viz_suggestedCharts', 'dashboard_activeTab',
+    ].forEach((key) => localStorage.removeItem(key));
+    window.location.href = '/login';
   };
 
   const renderModule = () => {
@@ -99,26 +107,27 @@ export default function DashboardPage() {
 
   return (
     <>
-      <Toaster position="top-right" />
+      <div className="flex h-screen overflow-hidden bg-slate-50 font-sans">
+        <Sidebar activeTab={activeTab} onTabChange={(tab) => {
+          setActiveTab(tab);
+          localStorage.setItem('dashboard_activeTab', tab);
+        }} />
 
-      <div className="flex min-h-screen bg-slate-50 font-sans">
-        <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-        
-        <main className="flex-1 min-w-0 relative">
-          <header className="sticky top-0 z-30 backdrop-blur-xl bg-white/80 border-b border-slate-200">
+        <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
+          <header className="shrink-0 backdrop-blur-xl bg-white/80 border-b border-slate-200 z-30">
             <div className="flex items-center justify-between px-6 md:px-8 py-4 pl-16 md:pl-8">
               <div>
                 <h1 className="text-lg font-bold text-slate-900">{tabTitles[activeTab]}</h1>
                 <p className="text-xs text-slate-400 mt-0.5">Welcome back — let's work with your data.</p>
               </div>
-              
+
+              {/* Avatar with hover-triggered profile dropdown */}
               <div className="flex items-center gap-3">
-                
                 <div className="relative group pe-2">
                   <div className="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white text-sm font-bold cursor-pointer hover:scale-105 transition-transform uppercase">
                     {userName ? userName.charAt(0) : (userEmail ? userEmail.charAt(0) : 'U')}
                   </div>
-                  
+
                   {/* Dropdown Profile Menu (Hover triggered) */}
                   <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <div className="w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
@@ -127,28 +136,34 @@ export default function DashboardPage() {
                         <p className="text-xs text-slate-500 truncate">{userEmail || 'user@exceliq.com'}</p>
                       </div>
                       <div className="p-2">
-                        <button 
+                        <button
                           onClick={() => setIsPasswordModalOpen(true)}
                           className="w-full text-left px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-indigo-600 rounded-lg transition"
                         >
                           Change Password
                         </button>
+                        <hr className="my-1 border-slate-100" />
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-3 py-2 text-sm font-semibold text-red-500 hover:bg-red-50 hover:text-red-600 rounded-lg transition"
+                        >
+                          Log out
+                        </button>
                       </div>
                     </div>
                   </div>
                 </div>
-
               </div>
             </div>
           </header>
 
-          <div className="p-6 md:p-8">
+          <div className="flex-1 overflow-auto p-5 md:p-6">
             {renderModule()}
           </div>
         </main>
       </div>
 
-      {/* Password Change Modal */}
+      {/* Change Password Modal */}
       {isPasswordModalOpen && (
         <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl p-6 w-full max-w-sm shadow-xl relative top-0 animate-in fade-in zoom-in duration-200">
@@ -156,32 +171,32 @@ export default function DashboardPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">New Password</label>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none" 
+                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                   placeholder="Enter new password"
                 />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">Confirm Password</label>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none" 
+                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                   placeholder="Confirm new password"
                 />
               </div>
               <div className="flex gap-3 mt-6 pt-2">
-                <button 
+                <button
                   onClick={() => setIsPasswordModalOpen(false)}
                   className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 transition"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleChangePassword}
                   className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition"
                 >

@@ -18,12 +18,21 @@ const Login = () => {
         
         // 1. Get token and role from response
         const { token, role } = response.data;
-        
-        // 2. Store them in localStorage
-        localStorage.setItem('token', token);
-        localStorage.setItem('role', role); // Helpful for future checks
 
-        // 3. Conditional Redirect
+        // 2. Wipe any stale data from previous session BEFORE storing new token.
+        //    This handles cases where the user navigated away without using the
+        //    in-app logout button (browser back, direct URL, expired session, etc.)
+        [
+          'ea_chatHistory', 'ea_fileMeta', 'ea_uploadedFilePath', 'ea_fileData', 'ea_suggestedCharts',
+          'viz_fileMeta', 'viz_uploadedFilePath', 'viz_fileData', 'viz_suggestedCharts',
+          'dashboard_activeTab',
+        ].forEach((key) => localStorage.removeItem(key));
+
+        // 3. Store new session credentials
+        localStorage.setItem('token', token);
+        localStorage.setItem('role', role);
+
+        // 4. Conditional Redirect
         if (role === 'admin') {
           router.push('/admin/Dashboard');
         } else {
