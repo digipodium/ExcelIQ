@@ -9,7 +9,7 @@ export default function Pricing() {
             Simple & Transparent Pricing
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Choose a plan that fits your investment journey. Upgrade anytime as you grow with BharatInvesto.
+            Boost your productivity with AI-powered Excel automation and insights using ExcelIQ.
           </p>
         </div>
 
@@ -23,10 +23,10 @@ export default function Pricing() {
             <p className="text-gray-500 mb-6">Free Forever</p>
 
             <ul className="space-y-3 text-gray-700 mb-8">
-              <li>✔ Live Market Overview</li>
-              <li>✔ Basic Stock Tracking</li>
-              <li>✔ Limited Research Access</li>
-              <li>✔ Community Support</li>
+              <li>✔ Upload Excel Files</li>
+              <li>✔ Basic Data Analysis</li>
+              <li>✔ Limited AI Queries</li>
+              <li>✔ Simple Charts</li>
             </ul>
 
             <button className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
@@ -34,7 +34,7 @@ export default function Pricing() {
             </button>
           </div>
 
-          {/* Pro Plan (Highlighted) */}
+          {/* Pro Plan */}
           <div className="bg-black text-white shadow-xl rounded-2xl p-8 transform scale-105">
             <div className="mb-4">
               <span className="bg-white text-black text-xs font-semibold px-3 py-1 rounded-full">
@@ -43,15 +43,15 @@ export default function Pricing() {
             </div>
 
             <h3 className="text-xl font-semibold mb-4">Pro</h3>
-            <p className="text-4xl font-bold mb-2">₹999</p>
+            <p className="text-4xl font-bold mb-2">₹499</p>
             <p className="text-gray-300 mb-6">per month</p>
 
             <ul className="space-y-3 mb-8">
-              <li>✔ Real-Time Market Data</li>
-              <li>✔ Advanced Technical Analysis</li>
-              <li>✔ Portfolio Tracking</li>
-              <li>✔ Smart Alerts & Notifications</li>
-              <li>✔ In-Depth Research Reports</li>
+              <li>✔ Unlimited Excel Uploads</li>
+              <li>✔ Advanced AI Data Insights</li>
+              <li>✔ Formula Generation</li>
+              <li>✔ Smart Charts & Visualizations</li>
+              <li>✔ Data Cleaning Automation</li>
             </ul>
 
             <button className="w-full bg-white text-black py-3 rounded-lg hover:bg-gray-200 transition">
@@ -62,15 +62,15 @@ export default function Pricing() {
           {/* Premium Plan */}
           <div className="bg-white shadow-lg rounded-2xl p-8 border">
             <h3 className="text-xl font-semibold mb-4">Premium</h3>
-            <p className="text-4xl font-bold mb-2">₹2499</p>
+            <p className="text-4xl font-bold mb-2">₹1499</p>
             <p className="text-gray-500 mb-6">per month</p>
 
             <ul className="space-y-3 text-gray-700 mb-8">
               <li>✔ Everything in Pro</li>
-              <li>✔ Exclusive Stock Picks</li>
+              <li>✔ AI Automation Workflows</li>
+              <li>✔ Bulk File Processing</li>
+              <li>✔ API Access</li>
               <li>✔ Priority Support</li>
-              <li>✔ Advanced Strategy Tools</li>
-              <li>✔ Early Feature Access</li>
             </ul>
 
             <button className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition">
@@ -83,8 +83,8 @@ export default function Pricing() {
         {/* Bottom Note */}
         <div className="text-center mt-16">
           <p className="text-gray-600">
-            All plans are designed to empower smarter investing.  
-            Cancel or upgrade anytime.
+            Built for students, professionals, and businesses to simplify Excel with AI.  
+            Upgrade anytime as your needs grow.
           </p>
         </div>
 
