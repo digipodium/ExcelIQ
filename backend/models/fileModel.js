@@ -10,7 +10,8 @@ const mySchema = new Schema({
 
     sheetName: { type: String, default: 'Sheet1' },
     rowCount: { type: Number, default: 0 },
-    columnCount: { type: Number, default: 0 }
+    columnCount: { type: Number, default: 0 },
+    commandCount: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = model('files', mySchema);

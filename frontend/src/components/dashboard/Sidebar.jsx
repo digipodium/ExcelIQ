@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { MessageSquare, FunctionSquare, FileText, BarChart3, Menu, X, LogOut, ChevronRight } from 'lucide-react';
+import { MessageSquare, FunctionSquare, FileText, BarChart3, Menu, X, LogOut, ChevronRight, LayoutDashboard } from 'lucide-react';
 
 const navItems = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, desc: 'Files & Stats' },
   { id: 'assistant', label: 'Excel Assistant', icon: MessageSquare, desc: 'Natural Language AI' },
   { id: 'formula', label: 'Formula Generator', icon: FunctionSquare, desc: 'Auto Formulas' },
   { id: 'report', label: 'Report Generation', icon: FileText, desc: 'Insights & Summaries' },

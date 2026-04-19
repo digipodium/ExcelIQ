@@ -332,21 +332,20 @@ router.post("/execute-cleaning", userAuth, async (req, res) => {
         const dataSample = JSON.stringify(sheetData.slice(0, 5));
         
         const aiPrompt = `
-           You are a strict, expert Javascript developer.
-           The user wants to apply the following data cleaning operation to their array of objects:
+           You are an expert Data Engineer specializing in Danfo.js.
+           The user wants to apply the following data cleaning operation directly to an active Danfojs DataFrame:
            "${suggestion}"
            
-           Here is a structural sample of the first 5 rows to understand the schema:
+           Here is a structural sample of the first 5 rows to understand the exact column schema:
            ${dataSample}
            
-           Write a PURE, executable JavaScript function named 'clean' that takes one parameter, 'dataset' (an array of objects), applies the requested cleaning operation meticulously, and returns the modified dataset array. 
-           Do NOT use arbitrary libraries (no lodash, no danfo). Rely completely on native Javascript array methods like .map(), .filter(), .forEach().
+           Write a PURE, executable JavaScript function named 'clean' that takes precisely one parameter, 'df' (a danfo.js DataFrame object), applies the requested cleaning operation using strictly native Danfo.js methods (e.g. df.dropNa(), df.fillNa(), df.rename()), and strictly returns the modified DataFrame. 
            
-           CRITICALLY: Respond ONLY with the raw Javascript function block. Do not include markdown tags (e.g. \`\`\`javascript), no conversational text, no explanations. 
+           CRITICALLY: Respond ONLY with the raw Javascript function block. Do not include markdown tags, no conversational text, no explanations. 
            Just the code:
-           function clean(dataset) {
-               // ... logic here ...
-               return dataset;
+           function clean(df) {
+               // ... danfo logic here ...
+               return df;
            }
         `;
         
@@ -358,7 +357,7 @@ router.post("/execute-cleaning", userAuth, async (req, res) => {
         // Safely execute the function dynamically
         let cleanFn;
         try {
-            cleanFn = new Function("dataset", `${code}\nreturn clean(dataset);`);
+            cleanFn = new Function("df", `${code}\nreturn clean(df);`);
         } catch(compileError) {
             console.error("Function Compilation Failed:", compileError, code);
             return res.status(400).json({ message: "AI Generated uncompilable logic." });
@@ -366,11 +365,20 @@ router.post("/execute-cleaning", userAuth, async (req, res) => {
 
         let cleanedData = [];
         try {
-            // Apply generated pure-function locally resolving strict parsing loops instantly
-            cleanedData = cleanFn(sheetData);
+            // Apply generated pure-function using Native Danfo DataFrame injections
+            const dfd = require("danfojs-node");
+            let df = new dfd.DataFrame(sheetData);
+            
+            let resultDf = cleanFn(df);
+            
+            // DanfoJS df.toJSON() converts underlying tensor grids back to JSON mapping instantly
+             cleanedData = dfd.toJSON(resultDf); 
         } catch (execError) {
             console.error("Function Execution Failed:", execError);
-            return res.status(400).json({ message: "AI generated logic threw an error during execution." });
+            if (execError.message && execError.message.includes("tfjs_binding")) {
+                return res.status(500).json({ message: "Danfo.js environment error: tfjs-node bindings need rebuilding for Node 20." });
+            }
+            return res.status(400).json({ message: "AI Danfo generated logic threw an error during execution." });
         }
 
         // Write the cleaned data back to the existing file silently overwriting it natively
