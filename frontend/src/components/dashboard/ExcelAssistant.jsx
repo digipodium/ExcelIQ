@@ -1,12 +1,11 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { Bot, Send, Table, Loader2, User, FileSpreadsheet, HardDrive, Rows3, Columns3, AlertCircle, Eye, Download } from 'lucide-react';
+import { Bot, Send, Table, Loader2, User, FileSpreadsheet, HardDrive, Rows3, Columns3, AlertCircle, Eye, Download, Wrench, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import DatasetView from './DatasetView';
 import FileUpload from './FileUpload';
 
-// localStorage 
 const safeGetItem = (key, fallback) => {
   if (typeof window === 'undefined') return fallback;
   try {
@@ -16,6 +15,7 @@ const safeGetItem = (key, fallback) => {
     return fallback;
   }
 };
+
 export default function ExcelAssistant() {
   const [chatHistory, setChatHistory] = useState([]);
   const [currentQuery, setCurrentQuery] = useState('');
@@ -25,29 +25,29 @@ export default function ExcelAssistant() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [fileData, setFileData] = useState({ headers: [], rows: [] });
   const [isDownloading, setIsDownloading] = useState(false);
-  const chatEndRef = useRef(null);
+  
+  const [cleaningSuggestions, setCleaningSuggestions] = useState(null);
+  const [isCleaningAnalyzing, setIsCleaningAnalyzing] = useState(false);
+  const [executingIdx, setExecutingIdx] = useState(null);
+  const [showCleaningList, setShowCleaningList] = useState(false);
+  const [appliedIndices, setAppliedIndices] = useState([]);
 
-  // Prevents the persistence effect from writing null to localStorage during the
-  // brief window when ExcelAssistant mounts before the tab switches away.
+  const chatEndRef = useRef(null);
   const isHydrated = useRef(false);
 
-  // Load persisted state from localStorage on first client render.
   useEffect(() => {
     setChatHistory(safeGetItem('ea_chatHistory', []));
     setFileMeta(safeGetItem('ea_fileMeta', null));
     setUploadedFilePath(safeGetItem('ea_uploadedFilePath', null));
     setFileData(safeGetItem('ea_fileData', { headers: [], rows: [] }));
+    setCleaningSuggestions(safeGetItem('ea_cleaningSuggestions', null));
     isHydrated.current = true;
   }, []);
 
-  // Persist chat history whenever it changes.
   useEffect(() => {
-    try { localStorage.setItem('ea_chatHistory', JSON.stringify(chatHistory)); }
-    catch { /* storage quota exceeded */ }
+    try { localStorage.setItem('ea_chatHistory', JSON.stringify(chatHistory)); } catch {}
   }, [chatHistory]);
 
-  // Persist file-related state, but only after the initial hydration load.
-  // Skipping before hydration prevents overwriting valid data with null defaults.
   useEffect(() => {
     if (!isHydrated.current) return;
     try {
@@ -56,36 +56,59 @@ export default function ExcelAssistant() {
         localStorage.setItem('ea_uploadedFilePath', JSON.stringify(uploadedFilePath));
         localStorage.setItem('ea_fileData', JSON.stringify(fileData));
       }
-    } catch { /* storage quota exceeded */ }
-  }, [fileMeta, uploadedFilePath, fileData]);
+      if (cleaningSuggestions !== null) {
+        localStorage.setItem('ea_cleaningSuggestions', JSON.stringify(cleaningSuggestions));
+      }
+    } catch { /* ignore */ }
+  }, [fileMeta, uploadedFilePath, fileData, cleaningSuggestions]);
 
   const handleUploadSuccess = (data) => {
     setFileMeta(data.fileMeta);
     setUploadedFilePath(data.path);
     if (data.previewData) setFileData(data.previewData);
-    if (data.suggestedCharts) {
-      try { localStorage.setItem('ea_suggestedCharts', JSON.stringify(data.suggestedCharts)); }
-      catch { /* storage quota exceeded */ }
+    setAppliedIndices([]); 
+    fetchCleaningSuggestions(data.fileMeta.id, data.path);
+  };
+
+  const fetchCleaningSuggestions = async (fileId, filePath) => {
+    setIsCleaningAnalyzing(true);
+    setCleaningSuggestions(null);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post('http://localhost:5000/suggest-cleaning',
+        { fileId, filePath },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      if (res.data.suggestions) {
+         setCleaningSuggestions(res.data.suggestions);
+         try { localStorage.setItem('ea_cleaningSuggestions', JSON.stringify(res.data.suggestions)); } catch {}
+      }
+    } catch (error) {
+       console.error(error);
+       toast.error("Failed to fetch data cleaning suggestions from endpoint.");
+    } finally {
+       setIsCleaningAnalyzing(false);
     }
   };
 
-  // Clear all state and localStorage keys when the user removes the uploaded file.
   const handleFileRemoved = () => {
     setFileMeta(null);
     setUploadedFilePath(null);
     setFileData({ headers: [], rows: [] });
     setChatHistory([]);
+    setCleaningSuggestions(null);
+    setAppliedIndices([]);
     setIsPreviewOpen(false);
+    setShowCleaningList(false);
+    
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('ea_fileMeta');
-      localStorage.removeItem('ea_uploadedFilePath');
-      localStorage.removeItem('ea_fileData');
-      localStorage.removeItem('ea_chatHistory');
-      localStorage.removeItem('ea_suggestedCharts');
+      [
+        'ea_fileMeta', 'ea_uploadedFilePath', 'ea_fileData', 
+        'ea_chatHistory', 'ea_suggestedCharts', 'ea_cleaningSuggestions'
+      ].forEach(k => localStorage.removeItem(k));
     }
   };
 
-  // ── FUNCTION: DOWNLOAD DATA (For the blue button in Sidebar) ──
   const handleDownloadData = async () => {
     const currentFileId = fileMeta?.id;
     if (!currentFileId) {
@@ -146,19 +169,121 @@ export default function ExcelAssistant() {
     }
   };
 
+  const handleExecuteCleaning = async (suggestion, index) => {
+    setExecutingIdx(index);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.post('http://localhost:5000/execute-cleaning',
+        { fileId: fileMeta?.id, filePath: uploadedFilePath, suggestion },
+        { headers: { 'Authorization': `Bearer ${token}` } }
+      );
+      if (res.data.success) {
+         setFileData(res.data.previewData);
+         if (res.data.newMeta) {
+             setFileMeta(prev => ({
+                 ...prev,
+                 name: res.data.newMeta.name || prev?.name,
+                 size: res.data.newMeta.size || prev?.size,
+                 rows: res.data.newMeta.rows,
+                 columns: res.data.newMeta.columns
+             }));
+         }
+         toast.success("Data cleaning applied successfully!");
+         setAppliedIndices(prev => [...prev, index]);
+      } else {
+         toast.error(res.data.message || "Execution returned an error");
+      }
+    } catch (error) {
+       console.error("Execution error", error);
+       toast.error("Failed to execute data cleaning step.");
+    } finally {
+       setExecutingIdx(null);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col gap-5">
       <div className="flex-1 min-h-0 grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
 
-          {/* ── FILE UPLOAD COMPONENT ── */}
-          <FileUpload
-            onUploadSuccess={handleUploadSuccess}
-            onFileRemoved={handleFileRemoved}
-            persistedFileMeta={fileMeta}
-          />
+          <div className="flex gap-4 items-stretch">
+            <div className="flex-1 min-w-0">
+              <FileUpload
+                onUploadSuccess={handleUploadSuccess}
+                onFileRemoved={handleFileRemoved}
+                persistedFileMeta={fileMeta}
+              />
+            </div>
 
-          {/* Chat box grows to fill remaining height in the column */}
+            {/* Right aligned Data Cleaning button (Displays only after upload) */}
+            {fileMeta && (
+              <div className="relative shrink-0 z-20">
+                <button 
+                   onClick={() => setShowCleaningList(!showCleaningList)}
+                   className={`flex flex-col items-center justify-center gap-2 h-full w-28 rounded-[20px] border-[1.5px] font-bold transition-all ${showCleaningList ? 'bg-rose-50 border-rose-300 text-rose-600 shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 shadow-sm hover:shadow-md'}`}
+                >
+                  <Wrench className="w-6 h-6" />
+                  <span className="text-[11px] leading-tight text-center">Data<br/>Cleaning</span>
+                  {cleaningSuggestions?.length > 0 && (cleaningSuggestions.length - appliedIndices.length) > 0 && (
+                     <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-bold text-[10px] w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                       {cleaningSuggestions.length - appliedIndices.length}
+                     </span>
+                  )}
+                </button>
+
+                {/* Popout List */}
+                {showCleaningList && (
+                  <div className="absolute top-[calc(100%+12px)] right-0 w-[420px] bg-white border border-rose-200 rounded-3xl p-5 shadow-[0_20px_60px_-10px_rgba(225,29,72,0.25)] flex flex-col max-h-[500px] overflow-hidden">
+                    <div className="flex items-center gap-3 mb-4 text-rose-700 shrink-0">
+                       <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center">
+                         <Wrench className="w-4 h-4 text-rose-600" />
+                       </div>
+                       <h3 className="text-sm font-bold">Data Cleaning Suggestions</h3>
+                    </div>
+                    
+                    <div className="overflow-y-auto pr-2 space-y-3 custom-scrollbar">
+                      {isCleaningAnalyzing ? (
+                        <div className="flex items-center gap-2 text-slate-500 text-sm py-4">
+                          <Loader2 className="w-4 h-4 animate-spin text-rose-500" />
+                          AI is inspecting dataset quality...
+                        </div>
+                      ) : cleaningSuggestions && cleaningSuggestions.length > 0 ? (
+                        <ul className="space-y-3">
+                          {cleaningSuggestions.map((sug, i) => {
+                            const isApplied = appliedIndices.includes(i);
+                            return (
+                              <li key={i} className="flex flex-col gap-3 text-xs text-slate-700 bg-rose-50/50 p-4 rounded-xl border border-rose-100 font-medium">
+                                <p className="leading-relaxed">{sug}</p>
+                                {isApplied ? (
+                                  <button disabled className="flex items-center justify-center gap-2 self-start bg-emerald-50 border border-emerald-200 text-emerald-600 py-1.5 px-4 rounded-lg font-bold shadow-sm opacity-100 cursor-not-allowed transition-all">
+                                    <CheckCircle2 className="w-3.5 h-3.5"/> Applied
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleExecuteCleaning(sug, i)}
+                                    disabled={executingIdx !== null}
+                                    className="flex items-center justify-center gap-2 self-start bg-white border border-rose-200 text-rose-600 hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 py-1.5 px-4 rounded-lg font-bold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {executingIdx === i ? <Loader2 className="w-3.5 h-3.5 animate-spin"/> : <Wrench className="w-3.5 h-3.5"/>}
+                                    {executingIdx === i ? 'Applying...' : 'Apply'}
+                                  </button>
+                                )}
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      ) : (
+                        <div className="py-2">
+                          <p className="text-sm text-slate-500">Your data looks clean! No immediate issues detected.</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col">
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
               {chatHistory.length === 0 ? (
@@ -210,7 +335,7 @@ export default function ExcelAssistant() {
           </div>
         </div>
 
-        {/* Right sidebar: file metadata and dataset preview */}
+        {/* Right sidebar */}
         <div className="space-y-5">
           <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
             <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
