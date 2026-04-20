@@ -1,11 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const fs = require('fs');
-const upload = require('../middlewares/upload');
-const userAuth = require('../middlewares/auth');
-const xlsx = require('xlsx');
-const FileModel = require('../models/fileModel');
+const express    = require('express');
+const router     = express.Router();
+const fs         = require('fs');
+const upload     = require('../middlewares/upload');
+const userAuth   = require('../middlewares/auth');
+const xlsx       = require('xlsx');
+const FileModel  = require('../models/fileModel');
 const HistoryModel = require('../models/historyModel');
+const { getDataFrame } = require('../utils/dataUtils');
 
 router.post('/upload', userAuth, upload.single('excelFile'), async (req, res) => {
   if (!req.file) {
@@ -13,30 +14,27 @@ router.post('/upload', userAuth, upload.single('excelFile'), async (req, res) =>
   }
 
   try {
-    // 1. Read the file to get Row/Column counts for the Metadata panel
-    const workbook = xlsx.readFile(req.file.path);
-    const sheetName = workbook.SheetNames[0];
-
-    const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-    const rowsCount = sheetData.length;
+    // 1. Parse & smart-trim the file (removes empty rows/columns via getDataFrame)
+    const { sheetData } = getDataFrame(req.file.path);
+    const rowsCount    = sheetData.length;
     const columnsCount = sheetData.length > 0 ? Object.keys(sheetData[0]).length : 0;
 
-    const jsonArrayData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { header: 1, defval: "" });
+    // Build preview from trimmed data
     let previewData = { headers: [], rows: [] };
-    if (jsonArrayData.length > 0) {
-      previewData.headers = jsonArrayData[0];
-      previewData.rows = jsonArrayData.slice(1);
+    if (sheetData.length > 0) {
+      previewData.headers = Object.keys(sheetData[0]);
+      previewData.rows    = sheetData.map(row => previewData.headers.map(h => row[h]));
     }
 
-    // 2. Save file record to Database
+    // 2. Save file record to Database (using trimmed row/col counts)
     const savedFile = await FileModel.create({
-      userId: req.user._id,
-      fileName: req.file.originalname,
-      filePath: req.file.path,
-      fileType: req.file.mimetype,
-      fileSize: req.file.size,
-      sheetName: sheetName,
-      rowCount: rowsCount,
+      userId:      req.user._id,
+      fileName:    req.file.originalname,
+      filePath:    req.file.path,
+      fileType:    req.file.mimetype,
+      fileSize:    req.file.size,
+      sheetName:   sheetData.length > 0 ? 'Sheet1' : 'Sheet1',
+      rowCount:    rowsCount,
       columnCount: columnsCount
     });
 
