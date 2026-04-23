@@ -98,7 +98,88 @@ router.post("/chat/query", userAuth, async (req, res) => {
     }
 });
 
-// ── Route: AI Chart Suggestions ───────────────────────────────────────────────
+// ── Route: AI Chart Suggestions from Raw Preview Data (no file needed) ───────
+router.post("/suggest-charts-from-preview", userAuth, async (req, res) => {
+    try {
+        const { previewData } = req.body;
+
+        if (!previewData || !Array.isArray(previewData.headers) || !Array.isArray(previewData.rows)) {
+            return res.status(400).json({ message: "previewData with headers and rows is required." });
+        }
+        if (previewData.rows.length === 0) {
+            return res.status(200).json({ suggestedCharts: [] });
+        }
+
+        // Build a CSV string inline from the preview data
+        const headerLine = previewData.headers.join(',');
+        const rowLines   = previewData.rows.map(row =>
+            row.map(cell => {
+                const s = String(cell ?? '');
+                // Quote cells that contain commas or quotes
+                return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
+            }).join(',')
+        );
+        const csvSample = [headerLine, ...rowLines.slice(0, 50)].join('\n');
+
+        const aiPrompt = `
+            You are a Data Visualization Expert.
+            The user has provided the following dataset in CSV format (up to 50 rows shown):
+            ${csvSample}
+
+            Total rows available: ${previewData.rows.length}
+            Columns: ${previewData.headers.join(', ')}
+
+            Analyze the columns and data types carefully.
+            Suggest 4 to 6 highly relevant, insightful, and diverse chart configurations that best represent this data.
+            Supported chart types: 'bar', 'line', 'pie', 'doughnut'.
+
+            IMPORTANT RULES:
+            - xAxis must be an EXACT match to one of the column names listed above (case-sensitive).
+            - yAxis must be an EXACT match to one of the column names listed above (case-sensitive).
+            - Choose numeric columns for yAxis.
+            - Choose categorical/text or date columns for xAxis.
+            - Vary the chart types — do not repeat the same type more than twice.
+
+            Respond STRICTLY with a valid JSON array and NOTHING else (no markdown, no explanation).
+            Format:
+            [
+              {
+                "id": 1,
+                "title": "Clear Chart Title",
+                "type": "bar",
+                "xAxis": "ExactColumnName",
+                "yAxis": "ExactColumnName",
+                "description": "One sentence describing what the chart reveals."
+              }
+            ]
+        `;
+
+        let result = await executePrompt(aiPrompt);
+
+        // Robust JSON extraction
+        let jsonStr = result.trim();
+        const firstBracket = jsonStr.indexOf('[');
+        const lastBracket  = jsonStr.lastIndexOf(']');
+        if (firstBracket !== -1 && lastBracket !== -1) {
+            jsonStr = jsonStr.substring(firstBracket, lastBracket + 1);
+        }
+
+        let suggestedCharts = [];
+        try {
+            suggestedCharts = JSON.parse(jsonStr);
+        } catch (e) {
+            console.error("Failed to parse AI chart-from-preview response:", result);
+            return res.status(200).json({ suggestedCharts: [] });
+        }
+
+        res.status(200).json({ suggestedCharts });
+    } catch (error) {
+        console.error("Chart-from-Preview Suggestion Error:", error);
+        res.status(500).json({ message: "Failed to generate chart suggestions from preview data." });
+    }
+});
+
+// ── Route: AI Chart Suggestions (from uploaded file) ─────────────────────────
 router.post("/suggest-charts", userAuth, async (req, res) => {
     try {
         const { fileId, filePath } = req.body;
