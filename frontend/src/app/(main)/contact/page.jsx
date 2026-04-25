@@ -156,7 +156,7 @@ const Contact = () => {
               <p className="text-gray-600 mt-1">
                 We're here to help with any questions or code.
               </p>
-              <a href="/support" className="text-indigo-600 font-semibold hover:underline mt-2 inline-block">
+              <a href="/helpcenter" className="text-indigo-600 font-semibold hover:underline mt-2 inline-block">
                 Visit Support Center →
               </a>
             </div>
@@ -166,7 +166,7 @@ const Contact = () => {
               <p className="text-gray-600 mt-1">
                 Search our FAQ for answers to anything you might ask.
               </p>
-              <a href="/support#faq" className="text-indigo-600 font-semibold hover:underline mt-2 inline-block">
+              <a href="/faq" className="text-indigo-600 font-semibold hover:underline mt-2 inline-block">
                 Read FAQs →
               </a>
             </div>
@@ -179,7 +179,7 @@ const Contact = () => {
                 If you wish to write us an email instead please use:
               </p>
               <span className="text-indigo-600 font-semibold mt-2 inline-block">
-                support@exceliq.com
+                exceliqsecurity@gmail.com
               </span>
             </div>
           </div>
