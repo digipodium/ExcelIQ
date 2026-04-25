@@ -2,20 +2,29 @@ const express = require("express");
 const router = express.Router();
 const Model = require("../models/usermodel");
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const userAuth = require("../middlewares/auth");
 require("dotenv").config();
 const crypto = require("crypto");
 
 //new route to add data to the database
-router.post("/add", (req, res) => {
-  console.log(req.body);
+router.post("/add", async (req, res) => {
+  try {
+    const { password, ...rest } = req.body;
+    if (!password) return res.status(400).json({ message: "Password is required" });
 
-  new Model(req.body).save().then((result) => {
+    // Hash password with 10 salt rounds
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const result = await new Model({ ...rest, password: hashedPassword }).save();
     res.status(200).json(result);
-  }).catch((err) => {
+  } catch (err) {
     console.error('error saving data:', err);
+    if (err.code === 11000) {
+      return res.status(409).json({ message: "Email already exists" });
+    }
     res.status(500).json(err);
-  });
+  }
 });
 
 //getall
@@ -39,46 +48,54 @@ router.delete('/delete/:id', (req, res) => {
 });
 
 //update
-router.put('/update/:id', (req, res) => {
-  Model.findByIdAndUpdate(req.params.id, req.body).then((result) => {
+router.put('/update/:id', async (req, res) => {
+  try {
+    const updateData = { ...req.body };
+
+    // If password is being updated, hash it first
+    if (updateData.password) {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    }
+
+    const result = await Model.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.status(200).json(result);
-  }).catch((err) => {
+  } catch (err) {
     console.log(err);
     res.status(500).json(err);
-  });
+  }
 });
 
 //Authenticate
 
-router.post('/authenticate', (req, res) => {
-  const { email, password } = req.body;
-  Model.findOne({ email, password })
-    .then((result) => {
-      if (result) {
-        // 1. Include "role" in the destructuring
-        const { _id, email, role } = result;
+router.post('/authenticate', async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-        // 2. Add "role" to the JWT payload
-        jwt.sign({ _id, email, role },
-          process.env.JWT_SECRET,
-          { expiresIn: '6d' },
-          (err, token) => {
-            if (err) {
-              console.log(err);
-              res.status(500).json({ message: 'error creating token' });
-            } else {
-              // 3. Return both token AND role to the frontend for immediate use
-              res.status(201).json({ token, role });
-            }
-          }
-        );
-      } else {
-        res.status(403).json({ message: 'credentials Invalid' });
-      }
-    })
-    .catch((err) => {
-      res.status(500).json(err);
-    });
+    // Find user by email only (not password — we'll compare hash)
+    const user = await Model.findOne({ email });
+    if (!user) {
+      return res.status(403).json({ message: 'credentials Invalid' });
+    }
+
+    // Compare plain password with stored hash
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(403).json({ message: 'credentials Invalid' });
+    }
+
+    // Generate JWT with role
+    const { _id, role } = user;
+    const token = jwt.sign(
+      { _id, email: user.email, role },
+      process.env.JWT_SECRET,
+      { expiresIn: '6d' }
+    );
+
+    res.status(201).json({ token, role });
+  } catch (err) {
+    console.error('Auth error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
 });
 
 const nodemailer = require("nodemailer");
@@ -153,8 +170,8 @@ router.post("/reset-password-otp", async (req, res) => {
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    // update password
-    user.password = password;
+    // Hash new password before saving
+    user.password = await bcrypt.hash(password, 10);
     user.resetOtp = undefined;
     user.otpExpire = undefined;
 

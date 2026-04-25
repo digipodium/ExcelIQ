@@ -91,25 +91,27 @@ function FileCard({ file, status, progress, onRemove, onUpload, uploading, sizeD
   const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
 
   return (
-    <div className="relative bg-white border-[1.5px] border-slate-200 rounded-[20px] p-5 shadow-[0_2px_12px_0_rgba(99,102,241,0.08)] overflow-hidden transition-shadow duration-200 hover:shadow-[0_4px_20px_0_rgba(99,102,241,0.14)] w-full">
+    <div className="relative bg-white border-[1.5px] border-slate-200 rounded-2xl sm:rounded-[20px] p-3 sm:p-5 shadow-[0_2px_12px_0_rgba(99,102,241,0.08)] overflow-hidden transition-shadow duration-200 hover:shadow-[0_4px_20px_0_rgba(99,102,241,0.14)] w-full">
       {/* glow bar that fills based on progress */}
       {status === 'uploading' && (
         <div className="absolute top-0 left-0 h-[3px] bg-gradient-to-r from-indigo-500 to-purple-400 rounded-t-[3px] transition-all duration-300 ease-in-out" style={{ width: `${progress}%` }} />
       )}
 
-      <div className="flex items-center gap-3.5">
-        {/* file type badge */}
-        <div 
-          className="w-[46px] h-[46px] rounded-[14px] border-[1.5px] flex flex-col items-center justify-center gap-[1px] shrink-0" 
-          style={{ backgroundColor: `${iconColor}15`, borderColor: `${iconColor}40` }}
-        >
-          <FileSpreadsheet className="w-[18px] h-[18px]" style={{ color: iconColor }} />
-          <span className="text-[8px] font-extrabold tracking-[0.06em]" style={{ color: iconColor }}>{ext}</span>
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3.5">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          {/* file type badge */}
+          <div 
+            className="hidden sm:flex w-[46px] h-[46px] rounded-[14px] border-[1.5px] flex-col items-center justify-center gap-[1px] shrink-0" 
+            style={{ backgroundColor: `${iconColor}15`, borderColor: `${iconColor}40` }}
+          >
+            <FileSpreadsheet className="w-[18px] h-[18px]" style={{ color: iconColor }} />
+            <span className="text-[8px] font-extrabold tracking-[0.06em]" style={{ color: iconColor }}>{ext}</span>
+          </div>
 
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis" title={file.name}>{file.name}</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">{sizeDisplay || formatBytes(file.size)}</p>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs sm:text-sm font-semibold text-slate-800 whitespace-nowrap overflow-hidden text-ellipsis" title={file.name}>{file.name}</p>
+            <p className="text-[10px] sm:text-[11px] text-slate-400 mt-0.5">{sizeDisplay || formatBytes(file.size)}</p>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 shrink-0">

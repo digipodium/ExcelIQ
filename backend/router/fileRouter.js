@@ -58,6 +58,35 @@ router.post('/upload', userAuth, upload.single('excelFile'), async (req, res) =>
   }
 });
 
+// ── NEW: PREVIEW API ──
+router.get('/preview/:id', userAuth, async (req, res) => {
+  try {
+    const fileId = req.params.id;
+    const fileData = await FileModel.findOne({ _id: fileId, userId: req.user._id });
+
+    if (!fileData) {
+      return res.status(404).json({ message: 'File not found or access denied' });
+    }
+
+    const fullPath = fileData.filePath;
+    if (!fs.existsSync(fullPath)) {
+      return res.status(404).json({ message: 'Actual file missing from server' });
+    }
+
+    const { sheetData } = getDataFrame(fullPath);
+    let previewData = { headers: [], rows: [] };
+    if (sheetData.length > 0) {
+      previewData.headers = Object.keys(sheetData[0]);
+      previewData.rows    = sheetData.map(row => previewData.headers.map(h => row[h]));
+    }
+
+    res.status(200).json({ previewData, fileName: fileData.fileName });
+  } catch (error) {
+    console.error('Preview error:', error);
+    res.status(500).json({ message: 'Error fetching preview', error: error.message });
+  }
+});
+
 // ── 2. NEW: DOWNLOAD API ──
 router.get('/download/:id', userAuth, async (req, res) => {
   try {

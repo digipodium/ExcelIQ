@@ -51,7 +51,7 @@ export default function FormulaGenerator() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
             <label className="block text-sm font-bold text-slate-700 mb-4">What do you want to calculate?</label>
-            <div className="flex gap-3">
+            <div className="flex flex-col sm:flex-row gap-3">
               <input
                 type="text"
                 value={prompt}

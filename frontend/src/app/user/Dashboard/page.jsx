@@ -7,10 +7,12 @@ import ExcelAssistant from '@/components/dashboard/ExcelAssistant';
 import FormulaGenerator from '@/components/dashboard/FormulaGenerator';
 import ReportGeneration from '@/components/dashboard/ReportGeneration';
 import Visualization from '@/components/dashboard/Visualization';
+import DatasetView from '@/components/dashboard/DatasetView';
 import {
   Files, Trash2, Loader2, AlertCircle, RefreshCw,
   FileSpreadsheet, FunctionSquare, MessageSquare,
-  Rows3, Columns3, HardDrive, Calendar, X, TriangleAlert
+  Rows3, Columns3, HardDrive, Calendar, X, TriangleAlert,
+  Search, Eye
 } from 'lucide-react';
 
 const tabTitles = {
@@ -28,6 +30,10 @@ function DashboardView() {
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState(null);
   const [confirmId, setConfirmId] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [viewingFile, setViewingFile] = useState(null);
+  const [previewData, setPreviewData] = useState({ headers: [], rows: [] });
+  const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
   const fetchFiles = useCallback(async () => {
     setIsLoading(true);
@@ -47,6 +53,25 @@ function DashboardView() {
   }, []);
 
   useEffect(() => { fetchFiles(); }, [fetchFiles]);
+
+  const handleViewFile = async (file) => {
+    setIsPreviewLoading(true);
+    setViewingFile(file);
+    try {
+      const token = localStorage.getItem('token');
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      const res = await axios.get(`${API_URL}/file/preview/${file.id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPreviewData(res.data.previewData);
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to load file preview');
+      setViewingFile(null);
+    } finally {
+      setIsPreviewLoading(false);
+    }
+  };
 
   const handleDelete = async (id) => {
     setDeletingId(id);
@@ -73,6 +98,10 @@ function DashboardView() {
     { label: 'AI Commands Run', value: stats.totalCommands, icon: MessageSquare, bg: 'bg-sky-50', text: 'text-sky-600' },
   ];
 
+  const filteredFiles = files.filter(f => 
+    f.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="space-y-6">
       {/* Stats */}
@@ -92,9 +121,9 @@ function DashboardView() {
 
       {/* Files Table */}
       <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-6 py-5 border-b border-slate-100 gap-4">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center shrink-0">
               <Files className="w-5 h-5 text-indigo-600" />
             </div>
             <div>
@@ -102,10 +131,22 @@ function DashboardView() {
               <p className="text-xs text-slate-400">Manage your datasets</p>
             </div>
           </div>
-          <button onClick={fetchFiles} disabled={isLoading}
-            className="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-600 border border-slate-200 hover:border-indigo-200 px-3 py-2 rounded-xl transition-all">
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} /> Refresh
-          </button>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <div className="relative flex-1 sm:flex-initial">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input 
+                type="text" 
+                placeholder="Search files..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none w-full sm:w-48 transition-all"
+              />
+            </div>
+            <button onClick={fetchFiles} disabled={isLoading}
+              className="flex shrink-0 items-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-600 border border-slate-200 hover:border-indigo-200 px-3 py-2 rounded-xl transition-all">
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} /> <span className="hidden sm:inline">Refresh</span>
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
@@ -132,7 +173,7 @@ function DashboardView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {files.map((file) => (
+                {filteredFiles.map((file) => (
                   <tr key={file.id} className="hover:bg-indigo-50/30 transition-colors">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -147,11 +188,18 @@ function DashboardView() {
                     <td className="px-6 py-4"><div className="flex items-center gap-1.5 text-sm text-slate-500"><Columns3 className="w-3.5 h-3.5 text-slate-300" />{file.columns}</div></td>
                     <td className="px-6 py-4"><div className="flex items-center gap-1.5 text-sm text-slate-500"><Calendar className="w-3.5 h-3.5 text-slate-300" />{formatDate(file.uploadedAt)}</div></td>
                     <td className="px-6 py-4">
-                      <button onClick={() => setConfirmId(file.id)} disabled={deletingId === file.id}
-                        className="flex items-center gap-1.5 text-xs font-bold text-red-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 px-3 py-2 rounded-xl transition-all disabled:opacity-50">
-                        {deletingId === file.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
-                        Delete
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => handleViewFile(file)} disabled={isPreviewLoading}
+                          className="flex items-center gap-1.5 text-xs font-bold text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50 border border-transparent hover:border-indigo-100 px-3 py-2 rounded-xl transition-all disabled:opacity-50">
+                          {isPreviewLoading && viewingFile?.id === file.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Eye className="w-3.5 h-3.5" />}
+                          View
+                        </button>
+                        <button onClick={() => setConfirmId(file.id)} disabled={deletingId === file.id}
+                          className="flex items-center gap-1.5 text-xs font-bold text-red-400 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-100 px-3 py-2 rounded-xl transition-all disabled:opacity-50">
+                          {deletingId === file.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -184,6 +232,14 @@ function DashboardView() {
           </div>
         </div>
       )}
+
+      {/* Dataset View Modal */}
+      <DatasetView 
+        isOpen={!!viewingFile && !isPreviewLoading} 
+        onClose={() => setViewingFile(null)} 
+        fileData={previewData} 
+        fileName={viewingFile?.name} 
+      />
     </div>
   );
 }

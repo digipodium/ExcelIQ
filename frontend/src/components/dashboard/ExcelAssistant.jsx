@@ -219,11 +219,11 @@ export default function ExcelAssistant() {
   };
 
   return (
-    <div className="h-full flex flex-col gap-5">
+    <div className="h-auto lg:h-full flex flex-col gap-5">
       <div className="flex-1 min-h-0 grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
 
-          <div className="flex gap-4 items-stretch">
+          <div className="flex flex-row gap-2 sm:gap-4 items-stretch overflow-x-auto no-scrollbar pb-1 w-full">
             <div className="flex-1 min-w-0">
               <FileUpload
                 onUploadSuccess={handleUploadSuccess}
@@ -234,15 +234,15 @@ export default function ExcelAssistant() {
 
             {/* Right aligned Data Cleaning button (Displays only after upload) */}
             {fileMeta && (
-              <div className="relative shrink-0 z-20">
+              <div className="relative shrink-0 w-20 sm:w-28 z-20">
                 <button
                   onClick={() => setShowCleaningList(!showCleaningList)}
-                  className={`flex flex-col items-center justify-center gap-2 h-full w-28 rounded-[20px] border-[1.5px] font-bold transition-all ${showCleaningList ? 'bg-rose-50 border-rose-300 text-rose-600 shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 shadow-sm hover:shadow-md'}`}
+                  className={`flex flex-col items-center justify-center gap-1 sm:gap-2 h-full w-full py-2 sm:py-0 rounded-2xl sm:rounded-[20px] border-[1.5px] font-bold transition-all ${showCleaningList ? 'bg-rose-50 border-rose-300 text-rose-600 shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 shadow-sm hover:shadow-md'}`}
                 >
-                  <Wrench className="w-6 h-6" />
-                  <span className="text-[11px] leading-tight text-center">Data<br />Cleaning</span>
+                  <Wrench className="w-5 h-5 sm:w-6 sm:h-6" />
+                  <span className="text-[9px] sm:text-[11px] leading-tight text-center">Data<br />Cleaning</span>
                   {cleaningSuggestions?.length > 0 && (cleaningSuggestions.length - appliedIndices.length) > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-bold text-[10px] w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-bold text-[9px] w-5 h-5 sm:text-[10px] sm:w-6 sm:h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
                       {cleaningSuggestions.length - appliedIndices.length}
                     </span>
                   )}
@@ -250,7 +250,7 @@ export default function ExcelAssistant() {
 
                 {/* Popout List */}
                 {showCleaningList && (
-                  <div className="absolute top-[calc(100%+12px)] right-0 w-[420px] bg-white border border-rose-200 rounded-3xl p-5 shadow-[0_20px_60px_-10px_rgba(225,29,72,0.25)] flex flex-col max-h-[500px] overflow-hidden">
+                  <div className="absolute top-[calc(100%+12px)] right-0 sm:right-auto sm:left-0 w-[calc(100vw-3rem)] sm:w-[420px] max-w-[420px] z-[60] bg-white border border-rose-200 rounded-3xl p-5 shadow-[0_20px_60px_-10px_rgba(225,29,72,0.25)] flex flex-col max-h-[500px] overflow-hidden">
                     <div className="flex items-center gap-3 mb-4 text-rose-700 shrink-0">
                       <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center">
                         <Wrench className="w-4 h-4 text-rose-600" />
@@ -299,9 +299,22 @@ export default function ExcelAssistant() {
                 )}
               </div>
             )}
+
+            {/* Mobile Dataset Preview Button (Displays only on mobile) */}
+            {fileMeta && (
+              <div className="shrink-0 w-20 sm:hidden z-20">
+                <button
+                  onClick={() => setIsPreviewOpen(true)}
+                  className={`flex flex-col items-center justify-center gap-1 h-full w-full py-2 rounded-2xl border-[1.5px] font-bold bg-white border-indigo-200 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600 shadow-sm transition-all`}
+                >
+                  <Eye className="w-5 h-5" />
+                  <span className="text-[9px] leading-tight text-center">Data<br />Preview</span>
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col">
+          <div className="flex-1 min-h-[450px] lg:min-h-0 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col">
             <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
               {chatHistory.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center">
@@ -397,7 +410,7 @@ export default function ExcelAssistant() {
           {fileMeta && (
             <div
               onClick={() => setIsPreviewOpen(true)}
-              className="bg-white border border-indigo-200 rounded-3xl p-5 shadow-sm cursor-pointer hover:bg-indigo-50 hover:border-indigo-300 transition-all group overflow-hidden relative"
+              className="hidden sm:block bg-white border border-indigo-200 rounded-3xl p-5 shadow-sm cursor-pointer hover:bg-indigo-50 hover:border-indigo-300 transition-all group overflow-hidden relative"
             >
               <div className="flex items-center gap-4 mb-4 relative z-10">
                 <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm group-hover:scale-110 transition-transform shrink-0">
