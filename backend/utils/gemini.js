@@ -4,7 +4,7 @@ require('dotenv').config();
 // 1. Initialize the client
 // Ensure GEMINI_API_KEY is set in your .env file
 const ai = new GoogleGenAI({
-    apiKey: 'AIzaSyAdCWkc9vgXhMj4oFMBsGETFyWPjUmtr3o',
+    apiKey: process.env.GEMINI_API_KEY, 
 });
 
 async function executePrompt(prompt) {
