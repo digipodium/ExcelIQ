@@ -62,10 +62,11 @@ router.post('/upload', userAuth, upload.single('excelFile'), async (req, res) =>
 router.get('/download/:id', userAuth, async (req, res) => {
   try {
     const fileId = req.params.id;
-    const fileData = await FileModel.findById(fileId);
+    // Ownership check: only the user who uploaded the file can download it
+    const fileData = await FileModel.findOne({ _id: fileId, userId: req.user._id });
 
     if (!fileData) {
-      return res.status(404).json({ message: 'File not found in database' });
+      return res.status(404).json({ message: 'File not found or access denied' });
     }
 
     const fullPath = fileData.filePath;
@@ -114,7 +115,7 @@ router.get('/list', userAuth, async (req, res) => {
 router.delete('/delete/:id', userAuth, async (req, res) => {
   try {
     const fileRecord = await FileModel.findOne({ _id: req.params.id, userId: req.user._id });
-    if (!fileRecord) return res.status(404).json({ message: 'File not found' });
+    if (!fileRecord) return res.status(404).json({ message: 'File not found or access denied' });
 
     // Delete from disk
     if (fs.existsSync(fileRecord.filePath)) {

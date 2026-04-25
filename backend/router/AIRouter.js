@@ -59,9 +59,16 @@ router.post("/chat/query", userAuth, async (req, res) => {
     try {
         const { query, file, fileId } = req.body;
 
-        if (!query || !file) {
-            return res.status(400).json({ message: "Query and file path are required" });
+        if (!query || !file || !fileId) {
+            return res.status(400).json({ message: "Query, file path, and fileId are required" });
         }
+
+        // Ownership check
+        const fileRecord = await FileModel.findOne({ _id: fileId, userId: req.user._id });
+        if (!fileRecord) {
+            return res.status(403).json({ message: "Forbidden: You do not have access to this file." });
+        }
+
         if (!fs.existsSync(file)) {
             return res.status(404).json({ message: "File not found on server. Please upload again." });
         }
@@ -129,9 +136,11 @@ router.post("/suggest-charts-from-preview", userAuth, async (req, res) => {
             Total rows available: ${previewData.rows.length}
             Columns: ${previewData.headers.join(', ')}
 
-            Analyze the columns and data types carefully.
-            Suggest 4 to 6 highly relevant, insightful, and diverse chart configurations that best represent this data.
-            Supported chart types: 'bar', 'line', 'pie', 'doughnut'.
+            Analyze the columns and data types carefully to categorize them into Numerical, Categorical, or Timeline columns.
+            Suggest 4 to 6 highly relevant, insightful, and diverse chart configurations based on these rules:
+            - For CATEGORICAL columns: Suggest 'bar', 'pie', or 'doughnut' charts.
+            - For NUMERICAL columns: Suggest 'bar' or 'line' charts.
+            - For TIMELINE columns (dates/times): Suggest 'line' or 'bar' charts to show trends over time.
 
             IMPORTANT RULES:
             - xAxis must be an EXACT match to one of the column names listed above (case-sensitive).
@@ -185,6 +194,13 @@ router.post("/suggest-charts", userAuth, async (req, res) => {
         const { fileId, filePath } = req.body;
 
         if (!fileId || !filePath) return res.status(400).json({ message: "File ID and path are required" });
+
+        // Ownership check
+        const fileRecord = await FileModel.findOne({ _id: fileId, userId: req.user._id });
+        if (!fileRecord) {
+            return res.status(403).json({ message: "Forbidden: You do not have access to this file." });
+        }
+
         if (!fs.existsSync(filePath)) return res.status(404).json({ message: "File not found on server." });
 
         const { csvData, sheetData } = getDataFrame(filePath);
@@ -200,8 +216,11 @@ router.post("/suggest-charts", userAuth, async (req, res) => {
             The user has uploaded a dataset in CSV format:
             ${sample}
 
-            Analyze the columns and data types. Suggest 3 to 5 highly relevant and insightful charts that can be plotted from this data.
-            Supported chart types are: 'bar', 'line', 'pie', 'doughnut'.
+            Analyze the columns and data types to identify Categorical, Numerical, and Timeline columns.
+            Suggest 3 to 5 highly relevant and insightful charts based on these rules:
+            - For CATEGORICAL data: Use 'bar', 'pie', or 'doughnut' charts.
+            - For NUMERICAL data: Use 'bar' or 'line' charts.
+            - For TIMELINE data (dates): Use 'line' or 'bar' charts to visualize trends.
 
             Respond STRICTLY with a valid JSON array and NOTHING else (no markdown blocks, no explanation).
             Format the JSON strictly as:
@@ -250,7 +269,14 @@ router.post("/generate-report", userAuth, async (req, res) => {
     try {
         const { fileId, filePath } = req.body;
 
-        if (!filePath) return res.status(400).json({ message: "File path is required" });
+        if (!filePath || !fileId) return res.status(400).json({ message: "File path and fileId are required" });
+
+        // Ownership check
+        const fileRecord = await FileModel.findOne({ _id: fileId, userId: req.user._id });
+        if (!fileRecord) {
+            return res.status(403).json({ message: "Forbidden: You do not have access to this file." });
+        }
+
         if (!fs.existsSync(filePath)) return res.status(404).json({ message: "File not found on server." });
 
         const { csvData, sheetData } = getDataFrame(filePath);
@@ -318,7 +344,15 @@ router.post("/generate-report", userAuth, async (req, res) => {
 router.post("/suggest-cleaning", userAuth, async (req, res) => {
     try {
         const { fileId, filePath } = req.body;
-        if (!filePath || !fs.existsSync(filePath)) return res.status(404).json({ message: "File not found" });
+        if (!fileId || !filePath) return res.status(400).json({ message: "File ID and path are required" });
+
+        // Ownership check
+        const fileRecord = await FileModel.findOne({ _id: fileId, userId: req.user._id });
+        if (!fileRecord) {
+            return res.status(403).json({ message: "Forbidden: You do not have access to this file." });
+        }
+
+        if (!fs.existsSync(filePath)) return res.status(404).json({ message: "File not found" });
 
         const { csvData, sheetData, descObj, missingObj } = getDataFrame(filePath);
         if (!sheetData || sheetData.length === 0) return res.status(200).json({ suggestions: [] });
@@ -365,7 +399,15 @@ router.post("/suggest-cleaning", userAuth, async (req, res) => {
 router.post("/execute-cleaning", userAuth, async (req, res) => {
     try {
         const { fileId, filePath, suggestion } = req.body;
-        if (!filePath || !fs.existsSync(filePath)) return res.status(404).json({ message: "File not found" });
+        if (!fileId || !filePath || !suggestion) return res.status(400).json({ message: "File ID, path, and suggestion are required" });
+
+        // Ownership check
+        const fileRecord = await FileModel.findOne({ _id: fileId, userId: req.user._id });
+        if (!fileRecord) {
+            return res.status(403).json({ message: "Forbidden: You do not have access to this file." });
+        }
+
+        if (!fs.existsSync(filePath)) return res.status(404).json({ message: "File not found" });
 
         const { sheetData } = getDataFrame(filePath);
         if (!sheetData || sheetData.length === 0) {

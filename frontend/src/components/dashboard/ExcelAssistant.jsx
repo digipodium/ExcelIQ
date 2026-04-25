@@ -25,7 +25,7 @@ export default function ExcelAssistant() {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [fileData, setFileData] = useState({ headers: [], rows: [] });
   const [isDownloading, setIsDownloading] = useState(false);
-  
+
   const [cleaningSuggestions, setCleaningSuggestions] = useState(null);
   const [isCleaningAnalyzing, setIsCleaningAnalyzing] = useState(false);
   const [executingIdx, setExecutingIdx] = useState(null);
@@ -45,7 +45,7 @@ export default function ExcelAssistant() {
   }, []);
 
   useEffect(() => {
-    try { localStorage.setItem('ea_chatHistory', JSON.stringify(chatHistory)); } catch {}
+    try { localStorage.setItem('ea_chatHistory', JSON.stringify(chatHistory)); } catch { }
   }, [chatHistory]);
 
   useEffect(() => {
@@ -65,8 +65,10 @@ export default function ExcelAssistant() {
   const handleUploadSuccess = (data) => {
     setFileMeta(data.fileMeta);
     setUploadedFilePath(data.path);
+    console.log(data);
+
     if (data.previewData) setFileData(data.previewData);
-    setAppliedIndices([]); 
+    setAppliedIndices([]);
     fetchCleaningSuggestions(data.fileMeta.id, data.path);
   };
 
@@ -80,14 +82,14 @@ export default function ExcelAssistant() {
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       if (res.data.suggestions) {
-         setCleaningSuggestions(res.data.suggestions);
-         try { localStorage.setItem('ea_cleaningSuggestions', JSON.stringify(res.data.suggestions)); } catch {}
+        setCleaningSuggestions(res.data.suggestions);
+        try { localStorage.setItem('ea_cleaningSuggestions', JSON.stringify(res.data.suggestions)); } catch { }
       }
     } catch (error) {
-       console.error(error);
-       toast.error("Failed to fetch data cleaning suggestions from endpoint.");
+      console.error(error);
+      toast.error("Failed to fetch data cleaning suggestions from endpoint.");
     } finally {
-       setIsCleaningAnalyzing(false);
+      setIsCleaningAnalyzing(false);
     }
   };
 
@@ -100,10 +102,10 @@ export default function ExcelAssistant() {
     setAppliedIndices([]);
     setIsPreviewOpen(false);
     setShowCleaningList(false);
-    
+
     if (typeof window !== 'undefined') {
       [
-        'ea_fileMeta', 'ea_uploadedFilePath', 'ea_fileData', 
+        'ea_fileMeta', 'ea_uploadedFilePath', 'ea_fileData',
         'ea_chatHistory', 'ea_suggestedCharts', 'ea_cleaningSuggestions'
       ].forEach(k => localStorage.removeItem(k));
     }
@@ -178,26 +180,26 @@ export default function ExcelAssistant() {
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       if (res.data.success) {
-         setFileData(res.data.previewData);
-         if (res.data.newMeta) {
-             setFileMeta(prev => ({
-                 ...prev,
-                 name: res.data.newMeta.name || prev?.name,
-                 size: res.data.newMeta.size || prev?.size,
-                 rows: res.data.newMeta.rows,
-                 columns: res.data.newMeta.columns
-             }));
-         }
-         toast.success("Data cleaning applied successfully!");
-         setAppliedIndices(prev => [...prev, index]);
+        setFileData(res.data.previewData);
+        if (res.data.newMeta) {
+          setFileMeta(prev => ({
+            ...prev,
+            name: res.data.newMeta.name || prev?.name,
+            size: res.data.newMeta.size || prev?.size,
+            rows: res.data.newMeta.rows,
+            columns: res.data.newMeta.columns
+          }));
+        }
+        toast.success("Data cleaning applied successfully!");
+        setAppliedIndices(prev => [...prev, index]);
       } else {
-         toast.error(res.data.message || "Execution returned an error");
+        toast.error(res.data.message || "Execution returned an error");
       }
     } catch (error) {
-       console.error("Execution error", error);
-       toast.error("Failed to execute data cleaning step.");
+      console.error("Execution error", error);
+      toast.error("Failed to execute data cleaning step.");
     } finally {
-       setExecutingIdx(null);
+      setExecutingIdx(null);
     }
   };
 
@@ -218,16 +220,16 @@ export default function ExcelAssistant() {
             {/* Right aligned Data Cleaning button (Displays only after upload) */}
             {fileMeta && (
               <div className="relative shrink-0 z-20">
-                <button 
-                   onClick={() => setShowCleaningList(!showCleaningList)}
-                   className={`flex flex-col items-center justify-center gap-2 h-full w-28 rounded-[20px] border-[1.5px] font-bold transition-all ${showCleaningList ? 'bg-rose-50 border-rose-300 text-rose-600 shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 shadow-sm hover:shadow-md'}`}
+                <button
+                  onClick={() => setShowCleaningList(!showCleaningList)}
+                  className={`flex flex-col items-center justify-center gap-2 h-full w-28 rounded-[20px] border-[1.5px] font-bold transition-all ${showCleaningList ? 'bg-rose-50 border-rose-300 text-rose-600 shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 shadow-sm hover:shadow-md'}`}
                 >
                   <Wrench className="w-6 h-6" />
-                  <span className="text-[11px] leading-tight text-center">Data<br/>Cleaning</span>
+                  <span className="text-[11px] leading-tight text-center">Data<br />Cleaning</span>
                   {cleaningSuggestions?.length > 0 && (cleaningSuggestions.length - appliedIndices.length) > 0 && (
-                     <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-bold text-[10px] w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
-                       {cleaningSuggestions.length - appliedIndices.length}
-                     </span>
+                    <span className="absolute -top-1 -right-1 bg-rose-500 text-white font-bold text-[10px] w-6 h-6 flex items-center justify-center rounded-full border-2 border-white shadow-sm">
+                      {cleaningSuggestions.length - appliedIndices.length}
+                    </span>
                   )}
                 </button>
 
@@ -235,12 +237,12 @@ export default function ExcelAssistant() {
                 {showCleaningList && (
                   <div className="absolute top-[calc(100%+12px)] right-0 w-[420px] bg-white border border-rose-200 rounded-3xl p-5 shadow-[0_20px_60px_-10px_rgba(225,29,72,0.25)] flex flex-col max-h-[500px] overflow-hidden">
                     <div className="flex items-center gap-3 mb-4 text-rose-700 shrink-0">
-                       <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center">
-                         <Wrench className="w-4 h-4 text-rose-600" />
-                       </div>
-                       <h3 className="text-sm font-bold">Data Cleaning Suggestions</h3>
+                      <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center">
+                        <Wrench className="w-4 h-4 text-rose-600" />
+                      </div>
+                      <h3 className="text-sm font-bold">Data Cleaning Suggestions</h3>
                     </div>
-                    
+
                     <div className="overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                       {isCleaningAnalyzing ? (
                         <div className="flex items-center gap-2 text-slate-500 text-sm py-4">
@@ -256,7 +258,7 @@ export default function ExcelAssistant() {
                                 <p className="leading-relaxed">{sug}</p>
                                 {isApplied ? (
                                   <button disabled className="flex items-center justify-center gap-2 self-start bg-emerald-50 border border-emerald-200 text-emerald-600 py-1.5 px-4 rounded-lg font-bold shadow-sm opacity-100 cursor-not-allowed transition-all">
-                                    <CheckCircle2 className="w-3.5 h-3.5"/> Applied
+                                    <CheckCircle2 className="w-3.5 h-3.5" /> Applied
                                   </button>
                                 ) : (
                                   <button
@@ -264,7 +266,7 @@ export default function ExcelAssistant() {
                                     disabled={executingIdx !== null}
                                     className="flex items-center justify-center gap-2 self-start bg-white border border-rose-200 text-rose-600 hover:bg-rose-100 hover:text-rose-700 hover:border-rose-300 py-1.5 px-4 rounded-lg font-bold shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                                   >
-                                    {executingIdx === i ? <Loader2 className="w-3.5 h-3.5 animate-spin"/> : <Wrench className="w-3.5 h-3.5"/>}
+                                    {executingIdx === i ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wrench className="w-3.5 h-3.5" />}
                                     {executingIdx === i ? 'Applying...' : 'Apply'}
                                   </button>
                                 )}
