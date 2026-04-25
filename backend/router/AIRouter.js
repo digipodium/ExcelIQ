@@ -54,7 +54,7 @@ router.post("/explain-formula", async (req, res) => {
     }
 });
 
-// ── Route: AI Chat Query against Uploaded Dataset ────────────────────────────
+// ── Route: AI Chat Query against Uploaded Dataset (Smart Unified Agent) ──────
 router.post("/chat/query", userAuth, async (req, res) => {
     try {
         const { query, file, fileId } = req.body;
@@ -73,32 +73,337 @@ router.post("/chat/query", userAuth, async (req, res) => {
             return res.status(404).json({ message: "File not found on server. Please upload again." });
         }
 
-        const { csvData, sheetData } = getDataFrame(file);
-        const sample = buildAISample(csvData);
-
-        const aiPrompt = `
-            You are an expert Excel Data Assistant.
-            The user has uploaded a dataset. Here is the dataset in CSV format:
-            ${sample}
-            Total rows in dataset: ${sheetData.length}
-
-            Based strictly on this data, answer the user's question:
-            "${query}"
-
-            Keep your answer helpful, concise, and accurate based on the columns provided.
+        // --- STEP 1: INTENT CLASSIFICATION ---
+        const intentPrompt = `
+            Analyze the following user query: "${query}"
+            Determine if the user wants to JUST ASK A QUESTION about the data (e.g. "what is the average?", "who is the highest?") OR if they want to MODIFY/CHANGE the data (e.g. "change this to that", "delete the row", "add a new column", "make it uppercase").
+            Respond STRICTLY with a JSON object and nothing else.
+            Format: {"intent": "chat"} OR {"intent": "modify"}
         `;
+        let intentResultRaw = await executePrompt(intentPrompt);
+        
+        let intent = "chat";
+        try {
+            let jsonStr = intentResultRaw.trim();
+            const firstBrace = jsonStr.indexOf('{');
+            const lastBrace  = jsonStr.lastIndexOf('}');
+            if (firstBrace !== -1 && lastBrace !== -1) {
+                jsonStr = jsonStr.substring(firstBrace, lastBrace + 1);
+            }
+            const intentJson = JSON.parse(jsonStr);
+            if (intentJson.intent === "modify") intent = "modify";
+        } catch(e) {
+            console.error("Intent parsing failed, defaulting to chat");
+        }
 
-        const result = await executePrompt(aiPrompt);
+        const { csvData, sheetData } = getDataFrame(file);
+        
+        // --- STEP 2: EXECUTE BASED ON INTENT ---
+        if (intent === "chat") {
+            const sample = buildAISample(csvData);
+            const aiPrompt = `
+                You are an expert Excel Data Assistant.
+                The user has uploaded a dataset. Here is the dataset in CSV format:
+                ${sample}
+                Total rows in dataset: ${sheetData.length}
 
-        await HistoryModel.create({
-            userId:    req.user._id,
-            fileId:    fileId || null,
-            queryType: 'chat',
-            prompt:    query,
-            response:  result
-        });
+                Based strictly on this data, answer the user's question:
+                "${query}"
 
-        res.status(200).json({ response: result });
+                Keep your answer helpful, concise, and accurate based on the columns provided.
+            `;
+            const result = await executePrompt(aiPrompt);
+
+            await HistoryModel.create({
+                userId:    req.user._id,
+                fileId:    fileId || null,
+                queryType: 'chat',
+                prompt:    query,
+                response:  result
+            });
+
+            return res.status(200).json({ response: result, isModified: false });
+        } 
+        
+        else if (intent === "modify") {
+            // Smart Hybrid: AI generates JSON instruction → Our Arquero code executes it
+            if (!sheetData || sheetData.length === 0) {
+                return res.status(200).json({ response: "Dataset is empty. Cannot apply modifications.", isModified: false });
+            }
+
+            const schemaSample = JSON.stringify(sheetData.slice(0, 5));
+            const columns = Object.keys(sheetData[0]);
+
+            const aiPrompt = `
+               You are a Data Transformation Planner.
+               The user wants to modify their dataset with this request:
+               "${query}"
+
+               Available columns (EXACT names, case-sensitive): ${JSON.stringify(columns)}
+               Sample data (first 5 rows): ${schemaSample}
+               Total rows: ${sheetData.length}
+
+               Analyze the request and respond STRICTLY with a JSON object describing the operation.
+               Choose ONE action type that best matches the request:
+
+               1. RENAME a value:
+               {"action": "rename_value", "column": "ExactColumnName", "oldValue": "current value", "newValue": "new value"}
+
+               2. TRANSFORM an entire column (uppercase, lowercase, trim, etc.):
+               {"action": "transform_column", "column": "ExactColumnName", "operation": "uppercase|lowercase|trim|capitalize"}
+
+               3. DELETE rows matching a condition:
+               {"action": "delete_rows", "column": "ExactColumnName", "condition": "equals|contains|greater_than|less_than", "value": "match value"}
+
+               4. ADD a new row:
+               {"action": "add_row", "values": {"Col1": "val1", "Col2": "val2"}}
+
+               5. ADD a new column with a default value:
+               {"action": "add_column", "column": "NewColumnName", "defaultValue": "default"}
+
+               6. DELETE a column:
+               {"action": "delete_column", "column": "ExactColumnName"}
+
+               7. REPLACE ALL occurrences of a text in a column:
+               {"action": "replace_text", "column": "ExactColumnName", "find": "old text", "replace": "new text"}
+
+               8. FILL empty/missing values in a column:
+               {"action": "fill_empty", "column": "ExactColumnName", "fillWith": "value to fill"}
+
+               9. SORT data by a column:
+               {"action": "sort", "column": "ExactColumnName", "order": "asc|desc"}
+
+               10. UPDATE a specific row by index (1-based row number):
+               {"action": "update_row", "rowIndex": 7, "updates": {"Col1": "newVal1", "Col2": "newVal2"}}
+
+               11. SET ALL values in a column to a specific value:
+               {"action": "set_all_values", "column": "ExactColumnName", "value": "the new value for every row"}
+
+               IMPORTANT:
+               - Column names MUST exactly match the available columns listed above.
+               - For rename_value, use the EXACT current value as it appears in the data (case-sensitive match from sample).
+               - If the user says "change all X to Y" or "set all X to Y", use "set_all_values" action.
+               - If the user says "change X to Y" (referring to a specific value, not all), use "rename_value" action.
+               - Respond with ONLY the JSON object. No markdown, no explanation.
+            `;
+
+            let aiResult = await executePrompt(aiPrompt);
+
+            // Parse the JSON instruction
+            let instruction;
+            try {
+                let jsonStr = aiResult.trim();
+                const fb = jsonStr.indexOf('{');
+                const lb = jsonStr.lastIndexOf('}');
+                if (fb !== -1 && lb !== -1) jsonStr = jsonStr.substring(fb, lb + 1);
+                instruction = JSON.parse(jsonStr);
+            } catch (e) {
+                console.error("AI instruction parse failed:", aiResult);
+                return res.status(200).json({ response: "I couldn't understand how to make that change. Please try rephrasing.", isModified: false });
+            }
+
+            // Execute the instruction using Arquero
+            const aq = require('arquero');
+            let tb = aq.from(sheetData);
+            let description = "";
+
+            try {
+                switch (instruction.action) {
+                    case 'rename_value': {
+                        const col = instruction.column;
+                        const oldVal = instruction.oldValue;
+                        const newVal = instruction.newValue;
+                        tb = tb.derive({
+                            [col]: aq.escape(d => {
+                                const cellVal = d[col];
+                                if (cellVal == null) return cellVal;
+                                return String(cellVal).toLowerCase() === String(oldVal).toLowerCase() ? newVal : cellVal;
+                            })
+                        });
+                        description = `Renamed '${oldVal}' to '${newVal}' in column '${col}'.`;
+                        break;
+                    }
+                    case 'transform_column': {
+                        const col = instruction.column;
+                        const op = instruction.operation;
+                        tb = tb.derive({
+                            [col]: aq.escape(d => {
+                                const val = d[col];
+                                if (val == null) return val;
+                                const s = String(val);
+                                if (op === 'uppercase') return s.toUpperCase();
+                                if (op === 'lowercase') return s.toLowerCase();
+                                if (op === 'trim') return s.trim();
+                                if (op === 'capitalize') return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+                                return val;
+                            })
+                        });
+                        description = `Applied '${op}' transformation to column '${col}'.`;
+                        break;
+                    }
+                    case 'delete_rows': {
+                        const col = instruction.column;
+                        const cond = instruction.condition;
+                        const val = instruction.value;
+                        tb = tb.filter(aq.escape(d => {
+                            const cellVal = d[col];
+                            if (cellVal == null) return true;
+                            const s = String(cellVal).toLowerCase();
+                            const v = String(val).toLowerCase();
+                            if (cond === 'equals') return s !== v;
+                            if (cond === 'contains') return !s.includes(v);
+                            if (cond === 'greater_than') return Number(cellVal) <= Number(val);
+                            if (cond === 'less_than') return Number(cellVal) >= Number(val);
+                            return true;
+                        }));
+                        description = `Deleted rows where '${col}' ${cond} '${val}'.`;
+                        break;
+                    }
+                    case 'add_row': {
+                        const newRow = instruction.values || {};
+                        // Fill missing columns with empty string
+                        const fullRow = {};
+                        columns.forEach(c => { fullRow[c] = newRow[c] !== undefined ? newRow[c] : ''; });
+                        const newData = [...sheetData, fullRow];
+                        tb = aq.from(newData);
+                        description = `Added a new row to the dataset.`;
+                        break;
+                    }
+                    case 'add_column': {
+                        const colName = instruction.column;
+                        const defVal = instruction.defaultValue || '';
+                        tb = tb.derive({ [colName]: aq.escape(() => defVal) });
+                        description = `Added new column '${colName}' with default value '${defVal}'.`;
+                        break;
+                    }
+                    case 'delete_column': {
+                        const colName = instruction.column;
+                        const keepCols = columns.filter(c => c !== colName);
+                        tb = tb.select(...keepCols);
+                        description = `Deleted column '${colName}'.`;
+                        break;
+                    }
+                    case 'replace_text': {
+                        const col = instruction.column;
+                        const findText = instruction.find;
+                        const replaceText = instruction.replace;
+                        // SAFETY: Reject empty find strings to prevent data corruption
+                        if (!findText || String(findText).trim() === '') {
+                            return res.status(200).json({ response: "Cannot replace with an empty search term. Please specify what text to find and replace.", isModified: false });
+                        }
+                        tb = tb.derive({
+                            [col]: aq.escape(d => {
+                                const val = d[col];
+                                if (val == null) return val;
+                                return String(val).split(findText).join(replaceText);
+                            })
+                        });
+                        description = `Replaced '${findText}' with '${replaceText}' in column '${col}'.`;
+                        break;
+                    }
+                    case 'set_all_values': {
+                        const col = instruction.column;
+                        const newVal = instruction.value;
+                        tb = tb.derive({
+                            [col]: aq.escape(() => newVal)
+                        });
+                        description = `Set all values in column '${col}' to '${newVal}'.`;
+                        break;
+                    }
+                    case 'fill_empty': {
+                        const col = instruction.column;
+                        const fillVal = instruction.fillWith;
+                        tb = tb.derive({
+                            [col]: aq.escape(d => {
+                                const val = d[col];
+                                return (val == null || String(val).trim() === '') ? fillVal : val;
+                            })
+                        });
+                        description = `Filled empty values in column '${col}' with '${fillVal}'.`;
+                        break;
+                    }
+                    case 'sort': {
+                        const col = instruction.column;
+                        const order = instruction.order === 'desc' ? aq.desc(col) : col;
+                        tb = tb.orderby(order);
+                        description = `Sorted data by column '${col}' in ${instruction.order === 'desc' ? 'descending' : 'ascending'} order.`;
+                        break;
+                    }
+                    case 'update_row': {
+                        const rowIdx = instruction.rowIndex - 1; // Convert to 0-based
+                        const updates = instruction.updates || {};
+                        const allData = JSON.parse(JSON.stringify(sheetData));
+                        if (rowIdx >= 0 && rowIdx < allData.length) {
+                            Object.keys(updates).forEach(key => { allData[rowIdx][key] = updates[key]; });
+                        }
+                        tb = aq.from(allData);
+                        description = `Updated row ${instruction.rowIndex} with new values.`;
+                        break;
+                    }
+                    default:
+                        return res.status(200).json({ response: `I don't know how to perform the action '${instruction.action}'. Please try rephrasing.`, isModified: false });
+                }
+            } catch (execError) {
+                console.error("Arquero Execution Failed:", execError.message);
+                return res.status(200).json({ response: "An error occurred while modifying the data. Your original data is safe.", isModified: false });
+            }
+
+            const cleanedData = tb.objects();
+
+            if (!Array.isArray(cleanedData) || (cleanedData.length === 0 && sheetData.length > 0)) {
+                return res.status(200).json({ response: "That modification would erase all data, so I have safely prevented it.", isModified: false });
+            }
+
+            try {
+                const xlsx = require('xlsx');
+                const newSheet    = xlsx.utils.json_to_sheet(cleanedData);
+                const newWorkbook = xlsx.utils.book_new();
+                xlsx.utils.book_append_sheet(newWorkbook, newSheet, "Sheet1");
+                xlsx.writeFile(newWorkbook, file);
+            } catch (writeErr) {
+                return res.status(500).json({ message: "Failed to save transformed data to file." });
+            }
+
+            let previewData = { headers: [], rows: [] };
+            let newMeta     = null;
+
+            if (cleanedData.length > 0) {
+                previewData.headers = Object.keys(cleanedData[0]);
+                previewData.rows    = cleanedData.map(row => previewData.headers.map(h => row[h]));
+
+                let fileSize      = fs.existsSync(file) ? fs.statSync(file).size : 0;
+                let formattedSize = fileSize < 1024
+                    ? `${fileSize} B`
+                    : fileSize < 1024 * 1024
+                        ? `${(fileSize / 1024).toFixed(2)} KB`
+                        : `${(fileSize / (1024 * 1024)).toFixed(2)} MB`;
+                let fileName = file.split(/[\\/]/).pop();
+
+                newMeta = {
+                    name:    fileName,
+                    size:    formattedSize,
+                    rows:    cleanedData.length,
+                    columns: previewData.headers.length
+                };
+            }
+
+            const responseMsg = description || "I have successfully updated your dataset as requested.";
+
+            await HistoryModel.create({
+                userId:    req.user._id,
+                fileId:    fileId || null,
+                queryType: 'chat',
+                prompt:    query,
+                response:  responseMsg
+            });
+
+            return res.status(200).json({ 
+                response: responseMsg, 
+                isModified: true, 
+                previewData, 
+                newMeta 
+            });
+        }
     } catch (error) {
         console.error("Chat Query Error:", error);
         res.status(500).json({ message: "AI chat processing failed" });
@@ -510,6 +815,128 @@ router.post("/execute-cleaning", userAuth, async (req, res) => {
     } catch (error) {
         console.error("Cleaning Execution Error:", error);
         res.status(500).json({ message: "Failed to execute cleaning step" });
+    }
+});
+
+// ── Route: Execute Custom User Query using Arquero JS ────────────────────────
+router.post("/execute-query", userAuth, async (req, res) => {
+    try {
+        const { fileId, filePath, query } = req.body;
+        if (!fileId || !filePath || !query) return res.status(400).json({ message: "File ID, path, and query are required" });
+
+        // Ownership check
+        const fileRecord = await FileModel.findOne({ _id: fileId, userId: req.user._id });
+        if (!fileRecord) {
+            return res.status(403).json({ message: "Forbidden: You do not have access to this file." });
+        }
+
+        if (!fs.existsSync(filePath)) return res.status(404).json({ message: "File not found" });
+
+        const { sheetData } = getDataFrame(filePath);
+        if (!sheetData || sheetData.length === 0) {
+            return res.status(200).json({ success: false, message: "Empty dataset" });
+        }
+
+        // Send a 5-row schema sample for context
+        const schemaSample = JSON.stringify(sheetData.slice(0, 5));
+
+        const aiPrompt = `
+           You are an expert Data Engineer specializing in Arquero JS (Apache Arrow data manipulation).
+           The user wants to modify their data with the following request:
+           "${query}"
+
+           Here is a structural sample of the first 5 rows to understand the column schema:
+           ${schemaSample}
+
+           Write a PURE, executable JavaScript function named 'transform' that:
+           - Takes two parameters: 'aq' (the arquero library object) and 'data' (a plain JavaScript Array of row Objects)
+           - Converts the data to an arquero table using: let tb = aq.from(data);
+           - Applies the user's requested transformation using Arquero functions (e.g., tb.derive, tb.filter, tb.select).
+           - Returns the modified table back as a JavaScript array: return tb.objects();
+
+           CRITICALLY: Respond ONLY with the raw JavaScript function block. No markdown, no explanation.
+           Just the code:
+           function transform(aq, data) {
+               let tb = aq.from(data);
+               // ... Arquero logic here ...
+               return tb.objects();
+           }
+        `;
+
+        let rawCode = await executePrompt(aiPrompt);
+
+        // Strip markdown wrappers if AI disobeyed
+        let code = rawCode
+            .replace(/```javascript/gi, "")
+            .replace(/```js/gi, "")
+            .replace(/```/g, "")
+            .trim();
+
+        const aq = require('arquero');
+
+        // Compile the generated function
+        let transformFn;
+        try {
+            transformFn = new Function('aq', 'data', `${code}\nreturn transform(aq, data);`);
+        } catch (compileError) {
+            console.error("Function Compilation Failed:", compileError.message);
+            return res.status(400).json({ message: "AI generated uncompilable logic. Please try again." });
+        }
+
+        // Execute the generated function
+        let cleanedData;
+        try {
+            cleanedData = transformFn(aq, sheetData);
+        } catch (execError) {
+            console.error("Function Execution Failed:", execError.message);
+            return res.status(400).json({ message: "AI generated logic threw a runtime error. Original data preserved." });
+        }
+
+        // ── PROTECTION GUARD ────────────────────────────
+        if (!Array.isArray(cleanedData) || (cleanedData.length === 0 && sheetData.length > 0)) {
+            return res.status(400).json({ message: "Transformation logic failed — would erase all data. Original data preserved." });
+        }
+
+        // ── Write cleaned data back to disk ──────────────────────────────────
+        try {
+            const xlsx = require('xlsx');
+            const newSheet    = xlsx.utils.json_to_sheet(cleanedData);
+            const newWorkbook = xlsx.utils.book_new();
+            xlsx.utils.book_append_sheet(newWorkbook, newSheet, "Sheet1");
+            xlsx.writeFile(newWorkbook, filePath);
+        } catch (writeErr) {
+            console.error("File Save Failed:", writeErr.message);
+            return res.status(500).json({ message: "Failed to save transformed data to file." });
+        }
+
+        // ── Build preview for frontend ────────────────────────────────────────
+        let previewData = { headers: [], rows: [] };
+        let newMeta     = null;
+
+        if (cleanedData.length > 0) {
+            previewData.headers = Object.keys(cleanedData[0]);
+            previewData.rows    = cleanedData.map(row => previewData.headers.map(h => row[h]));
+
+            let fileSize      = fs.existsSync(filePath) ? fs.statSync(filePath).size : 0;
+            let formattedSize = fileSize < 1024
+                ? `${fileSize} B`
+                : fileSize < 1024 * 1024
+                    ? `${(fileSize / 1024).toFixed(2)} KB`
+                    : `${(fileSize / (1024 * 1024)).toFixed(2)} MB`;
+            let fileName = filePath.split('\\').pop().split('/').pop();
+
+            newMeta = {
+                name:    fileName,
+                size:    formattedSize,
+                rows:    cleanedData.length,
+                columns: previewData.headers.length
+            };
+        }
+
+        res.status(200).json({ success: true, previewData, newMeta });
+    } catch (error) {
+        console.error("Transformation Execution Error:", error);
+        res.status(500).json({ message: "Failed to execute custom data transformation" });
     }
 });
 

@@ -13,6 +13,10 @@ const Contact = () => {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
  const handleSubmit = async (e) => {
   e.preventDefault();
 
@@ -86,7 +90,7 @@ const Contact = () => {
                     type="text"
                     name="firstName"
                     value={formData.firstName}
-                    onChange={handleSubmit}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                     placeholder="First Name"
                   />
@@ -100,7 +104,7 @@ const Contact = () => {
                     type="text"
                     name="lastName"
                     value={formData.lastName}
-                    onChange={handleSubmit}
+                    onChange={handleChange}
                     className="w-full px-4 py-3 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                     placeholder="Last Name"
                   />
@@ -115,7 +119,7 @@ const Contact = () => {
                   type="email"
                   name="email"
                   value={formData.email}
-                  onChange={handleSubmit}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                   placeholder="you@company.com"
                 />
@@ -129,7 +133,7 @@ const Contact = () => {
                   rows="4"
                   name="message"
                   value={formData.message}
-                  onChange={handleSubmit}
+                  onChange={handleChange}
                   className="w-full px-4 py-3 bg-slate-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
                   placeholder="How can we help?"
                 />

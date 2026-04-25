@@ -162,6 +162,21 @@ export default function ExcelAssistant() {
         { headers: { 'Authorization': `Bearer ${token}` } }
       );
       setChatHistory(prev => [...prev, { role: 'assistant', content: res.data.response }]);
+
+      if (res.data.isModified) {
+        setFileData(res.data.previewData);
+        if (res.data.newMeta) {
+          setFileMeta(prev => ({
+            ...prev,
+            name: res.data.newMeta.name || prev?.name,
+            size: res.data.newMeta.size || prev?.size,
+            rows: res.data.newMeta.rows,
+            columns: res.data.newMeta.columns
+          }));
+        }
+        toast.success("Dataset successfully modified!");
+      }
+
     } catch (error) {
       console.error(error);
       toast.error("Failed to get response from AI");
