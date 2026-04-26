@@ -23,7 +23,6 @@ const tabTitles = {
   visualization: 'Visualization'
 };
 
-// ── Inline Dashboard View ──────────────────────────────────────────
 function DashboardView() {
   const [files, setFiles] = useState([]);
   const [stats, setStats] = useState({ totalFormulas: 0, totalCommands: 0 });
@@ -244,7 +243,6 @@ function DashboardView() {
   );
 }
 
-// ── Main Page ──────────────────────────────────────────────────────
 export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [userName, setUserName] = useState('');

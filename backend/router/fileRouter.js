@@ -58,7 +58,7 @@ router.post('/upload', userAuth, upload.single('excelFile'), async (req, res) =>
   }
 });
 
-// ── NEW: PREVIEW API ──
+
 router.get('/preview/:id', userAuth, async (req, res) => {
   try {
     const fileId = req.params.id;
@@ -87,7 +87,7 @@ router.get('/preview/:id', userAuth, async (req, res) => {
   }
 });
 
-// ── 2. NEW: DOWNLOAD API ──
+
 router.get('/download/:id', userAuth, async (req, res) => {
   try {
     const fileId = req.params.id;
@@ -112,7 +112,7 @@ router.get('/download/:id', userAuth, async (req, res) => {
   }
 });
 
-// ── 3. LIST all files for logged-in user ──
+
 router.get('/list', userAuth, async (req, res) => {
   try {
     const files = await FileModel.find({ userId: req.user._id }).sort({ createdAt: -1 });
@@ -140,7 +140,7 @@ router.get('/list', userAuth, async (req, res) => {
   }
 });
 
-// ── 4. DELETE a file (disk + DB + history) ──
+
 router.delete('/delete/:id', userAuth, async (req, res) => {
   try {
     const fileRecord = await FileModel.findOne({ _id: req.params.id, userId: req.user._id });

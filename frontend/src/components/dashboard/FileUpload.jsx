@@ -14,9 +14,8 @@ const ACCEPTED_MIME = [
   'text/csv',
   'application/csv',
 ];
-const MAX_SIZE_MB = 25;
+const MAX_SIZE_MB = 15;
 
-// ─── helper ─────────────────────────────────────────────────────────────────
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
@@ -29,7 +28,6 @@ function getFileIcon(name = '') {
   return colors[ext] || '#6366f1';
 }
 
-// ─── sub-components ──────────────────────────────────────────────────────────
 function DropZone({ dragOver, onDragOver, onDragLeave, onDrop, onBrowse, inputRef, onFileChange }) {
   return (
     <div
@@ -172,7 +170,6 @@ function FileCard({ file, status, progress, onRemove, onUpload, uploading, sizeD
   );
 }
 
-// ─── main component
 export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFileMeta = null, className = '' }) {
   const [file, setFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
@@ -180,7 +177,6 @@ export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFi
   const [progress, setProgress] = useState(0);
   const inputRef = useRef(null);
 
-  // ── validation ──────────────────────────────────────────────────────────
   const validate = useCallback((f) => {
     if (!f) return false;
     const sizeMB = f.size / (1024 * 1024);
@@ -196,7 +192,6 @@ export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFi
     return true;
   }, []);
 
-  // ── drag events ─────────────────────────────────────────────────────────
   const handleDragOver = (e) => { e.preventDefault(); setDragOver(true); };
   const handleDragLeave = () => setDragOver(false);
   const handleDrop = (e) => {
@@ -213,7 +208,6 @@ export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFi
     e.target.value = '';
   };
 
-  // ── remove ──────────────────────────────────────────────────────────────
   const handleRemove = () => {
     setFile(null);
     setStatus('idle');
@@ -221,7 +215,6 @@ export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFi
     onFileRemoved?.();
   };
 
-  // ── upload ──────────────────────────────────────────────────────────────
   const handleUpload = async () => {
     if (!file) return;
     const formData = new FormData();
@@ -255,7 +248,6 @@ export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFi
     }
   };
 
-  // ── Restored state when no real File object but fileMeta available ──────
   const displayFile = file || (persistedFileMeta ? { name: persistedFileMeta.name, size: 0 } : null);
   const displayStatus = file ? status : (persistedFileMeta ? 'done' : 'idle');
   const displaySizeLabel = !file && persistedFileMeta ? persistedFileMeta.size : null;
@@ -286,5 +278,4 @@ export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFi
     </div>
   );
 }
-
 

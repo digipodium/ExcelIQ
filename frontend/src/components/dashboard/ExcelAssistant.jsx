@@ -223,7 +223,7 @@ export default function ExcelAssistant() {
       <div className="flex-1 min-h-0 grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 flex flex-col gap-4 min-h-0">
 
-          <div className="flex flex-row gap-2 sm:gap-4 items-stretch overflow-x-auto no-scrollbar pb-1 w-full">
+          <div className="flex gap-2 sm:gap-4 items-stretch">
             <div className="flex-1 min-w-0">
               <FileUpload
                 onUploadSuccess={handleUploadSuccess}

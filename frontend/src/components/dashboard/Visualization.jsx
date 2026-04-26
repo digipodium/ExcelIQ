@@ -20,9 +20,8 @@ ChartJS.register(
   Title, Tooltip, Legend
 );
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Constants
-// ─────────────────────────────────────────────────────────────────────────────
+
 const PIE_COLORS = [
   '#6366f1','#0ea5e9','#10b981','#f59e0b',
   '#ef4444','#8b5cf6','#ec4899','#14b8a6',
@@ -54,7 +53,6 @@ const SAMPLE_CHARTS_PRESET = [
   { id:4, title:'Expense Distribution',     type:'doughnut', xAxis:'Month', yAxis:'Expenses',   description:'How expenses are spread across months.' },
 ];
 
-// ── CSV text → { headers, rows } ───────────────────────────────────────────
 function parseCsvText(text) {
   const lines = text.trim().split('\n').filter(l => l.trim());
   if (lines.length < 2) return null;
@@ -69,32 +67,28 @@ function parseCsvText(text) {
   return { headers, rows };
 }
 
-// ── Mode badge styles ────────────────────────────────────────────────────────
 const MODE_BADGE = {
   upload: { bg: 'bg-emerald-100', text: 'text-emerald-700', label: 'Uploaded File' },
   paste:  { bg: 'bg-blue-100',   text: 'text-blue-700',    label: 'Pasted Data'   },
   sample: { bg: 'bg-violet-100', text: 'text-violet-700',  label: 'Sample Data'   },
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 // Main Component
-// ─────────────────────────────────────────────────────────────────────────────
+
 export default function Visualization() {
-  // ── Active data + charts ──────────────────────────────────────────────────
+
   const [fileData,        setFileData]        = useState(null); // { headers, rows }
   const [fileMeta,        setFileMeta]        = useState(null);
   const [suggestedCharts, setSuggestedCharts] = useState([]);
   const [activeChart,     setActiveChart]     = useState(null);
   const [dataMode,        setDataMode]        = useState(null); // 'upload'|'paste'|'sample'
 
-  // ── Input panel state ─────────────────────────────────────────────────────
   const [inputTab,          setInputTab]          = useState('upload'); // 'upload'|'paste'|'sample'
   const [csvText,           setCsvText]           = useState('');
   const [csvParseError,     setCsvParseError]     = useState('');
   const [isAiLoading,       setIsAiLoading]       = useState(false);
   const [inputPanelOpen,    setInputPanelOpen]    = useState(true);
 
-  // ── Restore from localStorage on mount ───────────────────────────────────
   useEffect(() => {
     if (typeof window === 'undefined') return;
     try {
@@ -109,7 +103,6 @@ export default function Visualization() {
     } catch {}
   }, []);
 
-  // ── Persist ───────────────────────────────────────────────────────────────
   const persist = (fd, sc, dm) => {
     try {
       if (fd) localStorage.setItem('viz_fileData', JSON.stringify(fd));
@@ -124,9 +117,7 @@ export default function Visualization() {
       .forEach(k => localStorage.removeItem(k));
   };
 
-  // ────────────────────────────────────────────────────────────────────────────
   // Mode handlers
-  // ────────────────────────────────────────────────────────────────────────────
 
   // 1) File upload → AI via /suggest-charts (file path on server)
   const handleUploadSuccess = (data) => {
@@ -219,9 +210,8 @@ export default function Visualization() {
     } finally { setIsAiLoading(false); }
   };
 
-  // ────────────────────────────────────────────────────────────────────────────
   // Chart data derivation
-  // ────────────────────────────────────────────────────────────────────────────
+
   const chartData = useMemo(() => {
     if (!activeChart || !fileData?.headers) return null;
     const { xAxis, yAxis, type } = activeChart;
@@ -316,9 +306,8 @@ export default function Visualization() {
   const modeBadge = dataMode ? MODE_BADGE[dataMode] : null;
   const hasCharts = suggestedCharts.length > 0;
 
-  // ────────────────────────────────────────────────────────────────────────────
   // Render
-  // ────────────────────────────────────────────────────────────────────────────
+
   return (
     <div className="space-y-5">
 

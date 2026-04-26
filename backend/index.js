@@ -23,7 +23,7 @@ app.use('/',        require('./router/AIRouter'));
 
 app.get('/health', (req, res) => res.json({ status: 'ok', timestamp: new Date() }));
 
-// ── Public Contact Form Submission (no auth required) ──
+
 const ContactModel = require('./models/contactModel');
 app.post('/contact', async (req, res) => {
   try {

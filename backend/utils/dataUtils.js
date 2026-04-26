@@ -1,12 +1,12 @@
 // utils/dataUtils.js
-// ─────────────────────────────────────────────────────────────────────────────
+
 // Smart Data Frame Utility
 // Replaces danfojs-node with a pure-JS + Arquero pipeline that:
 //   1. Trims empty rows  (plain JS filter)
 //   2. Trims empty cols  (Arquero select)
 //   3. Returns csvData   (70 % token savings vs JSON)
 //   4. Returns descObj / missingObj for cleaning analytics
-// ─────────────────────────────────────────────────────────────────────────────
+
 const aq   = require('arquero');
 const xlsx = require('xlsx');
 
@@ -27,7 +27,7 @@ const getDataFrame = (filePath) => {
         { defval: "" }
     );
 
-    // ── 1. SMART ROW TRIM ────────────────────────────────────────────────────
+
     // Drop rows where every single value is empty / null / undefined
     sheetData = sheetData.filter(row =>
         Object.values(row).some(v => v !== null && v !== "" && v !== undefined)
@@ -37,7 +37,7 @@ const getDataFrame = (filePath) => {
         return { sheetData: [], csvData: "", descObj: {}, missingObj: {} };
     }
 
-    // ── 2. SMART COLUMN TRIM (Arquero) ───────────────────────────────────────
+
     // Drop columns where every cell is empty / null / undefined
     let dt = aq.from(sheetData);
     const validCols = dt.columnNames().filter(col => {
@@ -52,12 +52,12 @@ const getDataFrame = (filePath) => {
 
     sheetData = dt.objects();
 
-    // ── 3. CSV CONVERSION ────────────────────────────────────────────────────
+
     // Produces a compact string ~70 % smaller than JSON for the same data
     const trimmedSheet = xlsx.utils.json_to_sheet(sheetData);
     const csvData      = xlsx.utils.sheet_to_csv(trimmedSheet);
 
-    // ── 4. STATISTICS (for /suggest-cleaning) ────────────────────────────────
+
     let descObj    = {};
     let missingObj = {};
 
@@ -91,7 +91,7 @@ const getDataFrame = (filePath) => {
     return { sheetData, csvData, descObj, missingObj };
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
+
 /**
  * Build a token-efficient AI context string from a csvData string.
  * For small files the full CSV is returned.

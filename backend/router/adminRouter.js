@@ -51,7 +51,28 @@ router.delete('/users/:id', adminAuth, async (req, res) => {
     }
 });
 
-// ── CONTACT QUERIES ──────────────────────────────────────────────────────────
+// UPDATE a specific user
+router.put('/users/:id', adminAuth, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, email, role } = req.body;
+        
+        const updatedUser = await UserModel.findByIdAndUpdate(
+            id,
+            { name, email, role },
+            { new: true, select: '-password' } // Return updated document without password
+        );
+        
+        if (!updatedUser) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ message: 'Internal server error updating user' });
+    }
+});
 
 // GET all contact queries (for admin dashboard)
 router.get('/contacts', adminAuth, async (req, res) => {
