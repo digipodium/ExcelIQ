@@ -1,5 +1,4 @@
-// controllers/chatController.js
-// Smart Unified Agent: intent classification → chat response OR data modification
+
 const { executePrompt }               = require("../utils/gemini.js");
 const { getDataFrame, buildAISample } = require("../utils/dataUtils.js");
 const xlsx         = require('xlsx');
@@ -15,7 +14,7 @@ const chatQuery = async (req, res) => {
             return res.status(400).json({ message: "Query, file path, and fileId are required" });
         }
 
-        // Ownership check
+
         const fileRecord = await FileModel.findOne({ _id: fileId, userId: req.user._id });
         if (!fileRecord) {
             return res.status(403).json({ message: "Forbidden: You do not have access to this file." });
@@ -25,7 +24,7 @@ const chatQuery = async (req, res) => {
             return res.status(404).json({ message: "File not found on server. Please upload again." });
         }
 
-        // --- STEP 1: INTENT CLASSIFICATION ---
+
         const intentPrompt = `
             Analyze the following user query: "${query}"
             Determine if the user wants to JUST ASK A QUESTION about the data (e.g. "what is the average?", "who is the highest?") OR if they want to MODIFY/CHANGE the data (e.g. "change this to that", "delete the row", "add a new column", "make it uppercase").
@@ -50,7 +49,7 @@ const chatQuery = async (req, res) => {
 
         const { csvData, sheetData } = getDataFrame(file);
         
-        // --- STEP 2: EXECUTE BASED ON INTENT ---
+
         if (intent === "chat") {
             const sample = buildAISample(csvData);
             const aiPrompt = `
@@ -78,7 +77,6 @@ const chatQuery = async (req, res) => {
         } 
         
         else if (intent === "modify") {
-            // Smart Hybrid: AI generates JSON instruction → Our Arquero code executes it
             if (!sheetData || sheetData.length === 0) {
                 return res.status(200).json({ response: "Dataset is empty. Cannot apply modifications.", isModified: false });
             }
@@ -146,7 +144,7 @@ const chatQuery = async (req, res) => {
 
             let aiResult = await executePrompt(aiPrompt);
 
-            // Parse the JSON instruction
+
             let instruction;
             try {
                 let jsonStr = aiResult.trim();
@@ -159,7 +157,7 @@ const chatQuery = async (req, res) => {
                 return res.status(200).json({ response: "I couldn't understand how to make that change. Please try rephrasing.", isModified: false });
             }
 
-            // Execute the instruction using Arquero
+
             const aq = require('arquero');
             let tb = aq.from(sheetData);
             let description = "";
@@ -243,7 +241,6 @@ const chatQuery = async (req, res) => {
                         const col = instruction.column;
                         const findText = instruction.find;
                         const replaceText = instruction.replace;
-                        // SAFETY: Reject empty find strings to prevent data corruption
                         if (!findText || String(findText).trim() === '') {
                             return res.status(200).json({ response: "Cannot replace with an empty search term. Please specify what text to find and replace.", isModified: false });
                         }

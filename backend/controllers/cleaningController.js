@@ -1,11 +1,11 @@
-// controllers/cleaningController.js
+
 const { executePrompt }               = require("../utils/gemini.js");
 const { getDataFrame, buildAISample } = require("../utils/dataUtils.js");
 const xlsx      = require('xlsx');
 const fs        = require('fs');
 const FileModel = require('../models/fileModel');
 
-// AI Data Cleaning Suggestions
+
 const suggestCleaning = async (req, res) => {
     try {
         const { fileId, filePath } = req.body;
@@ -58,7 +58,7 @@ const suggestCleaning = async (req, res) => {
     }
 };
 
-// Execute a Single Cleaning Step (pure JS)
+
 const executeCleaning = async (req, res) => {
     try {
         const { fileId, filePath, suggestion } = req.body;

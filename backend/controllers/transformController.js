@@ -1,11 +1,11 @@
-// controllers/transformController.js
+
 const { executePrompt }   = require("../utils/gemini.js");
 const { getDataFrame }    = require("../utils/dataUtils.js");
 const xlsx      = require('xlsx');
 const fs        = require('fs');
 const FileModel = require('../models/fileModel');
 
-// Execute Custom User Query using Arquero JS
+
 const executeQuery = async (req, res) => {
     try {
         const { fileId, filePath, query } = req.body;

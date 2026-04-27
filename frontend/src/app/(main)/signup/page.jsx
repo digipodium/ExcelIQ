@@ -31,44 +31,44 @@ export default function Signup() {
     },
     validationSchema: signupSchema,
     onSubmit: async (values) => {
-  console.log(values);
-  try {
-    const res = await axios.post('http://localhost:5000/user/add', values);
-    console.log(res.status);
+      console.log(values);
+      try {
+        const res = await axios.post('http://localhost:5000/user/add', values);
+        console.log(res.status);
 
-    if (res.status === 200) {
-      toast.success('Signup successful!');
+        if (res.status === 200) {
+          toast.success('Signup successful!');
 
-      // If your API returns a token after signup
-      const token = res.data.token; // check if your API sends token
-      if (token) {
-        localStorage.setItem('token', token);
+          // If your API returns a token after signup
+          const token = res.data.token; // check if your API sends token
+          if (token) {
+            localStorage.setItem('token', token);
+          }
+
+          // Redirect to dashboard
+          window.location.href = '/login'; // simple redirect
+          // OR, if using Next.js app router with useRouter:
+          // router.push('/dashboard');
+        } else {
+          toast.error('Signup failed. Please try again.');
+        }
+      } catch (error) {
+        if (error.response?.data?.code === 11000 || error.response?.status === 409) {
+          toast.error('You are already registered, please sign in');
+        } else {
+          toast.error('An error occurred. Please try again.');
+        }
+        console.error(error);
       }
-
-      // Redirect to dashboard
-      window.location.href = '/login'; // simple redirect
-      // OR, if using Next.js app router with useRouter:
-      // router.push('/dashboard');
-    } else {
-      toast.error('Signup failed. Please try again.');
     }
-  } catch (error) {
-    if (error.response?.data?.code === 11000 || error.response?.status === 409) {
-      toast.error('You are already registered, please sign in');
-    } else {
-      toast.error('An error occurred. Please try again.');
-    }
-    console.error(error);
-  }
-}
   });
 
   return (
 
-   
+
     <div className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-blue-50 to-blue-200 px-4 pt-20 pb-6 overflow-hidden font-sans">
 
-      
+
 
       {/* Animated Background Blobs */}
       <div className="absolute top-10 right-10 w-96 h-96 bg-blue-500 opacity-20 rounded-full blur-[100px] animate-pulse"></div>
@@ -84,27 +84,6 @@ export default function Signup() {
             Get started with <span className="font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Excel IQ</span>
           </p>
         </div>
-
-        {/* Google Auth Button 
-        <button type="button" className="w-full flex items-center justify-center gap-3 py-2.5 px-4 bg-white border border-gray-200 rounded-xl text-slate-700 text-sm font-semibold hover:bg-gray-50 hover:border-gray-300 hover:shadow-sm transition-all duration-300 mb-5">
-          <svg width="18" height="18" viewBox="0 0 48 48">
-            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-          </svg>
-          Continue with Google
-        </button>
-        */}
-
-        {/* Divider 
-        <div className="flex items-center mb-5">
-          <div className="flex-grow h-px bg-gray-200"></div>
-          <span className="px-3 text-gray-400 text-xs font-medium uppercase tracking-wider">or</span>
-          <div className="flex-grow h-px bg-gray-200"></div>
-        </div>
-        */}
-
         {/* Signup Form */}
         <form onSubmit={signupForm.handleSubmit} className="space-y-3.5">
 
@@ -223,8 +202,8 @@ export default function Signup() {
         </div>
       </div>
 
-      
+
     </div>
-     
+
   );
 }

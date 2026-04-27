@@ -1,10 +1,10 @@
-// controllers/chartController.js
+
 const { executePrompt }               = require("../utils/gemini.js");
 const { getDataFrame, buildAISample } = require("../utils/dataUtils.js");
 const fs        = require('fs');
 const FileModel = require('../models/fileModel');
 
-// Chart Suggestions from Raw Preview Data (no file needed)
+
 const suggestChartsFromPreview = async (req, res) => {
     try {
         const { previewData } = req.body;
@@ -85,7 +85,7 @@ const suggestChartsFromPreview = async (req, res) => {
     }
 };
 
-// Chart Suggestions from uploaded file
+
 const suggestCharts = async (req, res) => {
     try {
         const { fileId, filePath } = req.body;

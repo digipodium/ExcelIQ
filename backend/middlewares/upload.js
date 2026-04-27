@@ -1,10 +1,10 @@
-// middlewares/upload.js
+
 const multer = require('multer');
 const path = require('path');
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Files will be saved in the uploads/ folder
+    cb(null, 'uploads/');
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
   }
 });
 
-// Filter to only allow Excel and CSV files
+
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['.xlsx', '.xls', '.csv'];
   const ext = path.extname(file.originalname).toLowerCase();
@@ -27,7 +27,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 15 * 1024 * 1024 } // 15MB Limit
+  limits: { fileSize: 15 * 1024 * 1024 }
 });
 
 module.exports = upload;

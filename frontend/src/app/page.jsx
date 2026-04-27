@@ -8,14 +8,11 @@ import Blog from "./(main)/blog/page";
 import Navbar from "./(main)/Navbar";
 import Footer from "@/app/(main)/Footer";
 
-
 export const Home = () => {
   return (
 
     <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50">
-
       <Navbar />
-      
 
       {/* Animated Background Blobs */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500 opacity-20 rounded-full blur-3xl animate-pulse"></div>
@@ -57,10 +54,10 @@ export const Home = () => {
                 </button>
               </Link>
 
-<Link href="/Tour">
-              <button className="px-8 py-3 rounded-xl border border-gray-300 hover:border-indigo-600 hover:text-indigo-600 transition duration-300">
-                Take Tour
-              </button>
+              <Link href="/Tour">
+                <button className="px-8 py-3 rounded-xl border border-gray-300 hover:border-indigo-600 hover:text-indigo-600 transition duration-300">
+                  Take Tour
+                </button>
               </Link>
             </div>
           </motion.div>
@@ -137,28 +134,19 @@ export const Home = () => {
 
           <Link href="/signup">
 
-          <button className="bg-slate-900 text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-indigo-600 hover:scale-105 transition duration-300 shadow-xl">
-            GET STARTED →
-          </button>
+            <button className="bg-slate-900 text-white px-10 py-4 rounded-full text-lg font-semibold hover:bg-indigo-600 hover:scale-105 transition duration-300 shadow-xl">
+              GET STARTED →
+            </button>
 
           </Link>
         </motion.div>
       </div>
-     
-     <Faq/>
 
-<Blog/>
-
-     <Contact/>
-     
-<Footer/>
-    
-    
-    
+      <Faq />
+      <Blog />
+      <Contact />
+      <Footer />
     </div>
   );
-  
 };
-
-
 export default Home;

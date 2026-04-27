@@ -90,14 +90,13 @@ function DashboardView() {
   };
 
   const formatDate = (d) => new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-
   const statCards = [
     { label: 'Total Files', value: files.length, icon: Files, bg: 'bg-indigo-50', text: 'text-indigo-600' },
     { label: 'Formulas Generated', value: stats.totalFormulas, icon: FunctionSquare, bg: 'bg-violet-50', text: 'text-violet-600' },
     { label: 'AI Commands Run', value: stats.totalCommands, icon: MessageSquare, bg: 'bg-sky-50', text: 'text-sky-600' },
   ];
 
-  const filteredFiles = files.filter(f => 
+  const filteredFiles = files.filter(f =>
     f.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -133,9 +132,9 @@ function DashboardView() {
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <div className="relative flex-1 sm:flex-initial">
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-              <input 
-                type="text" 
-                placeholder="Search files..." 
+              <input
+                type="text"
+                placeholder="Search files..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 pr-4 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none w-full sm:w-48 transition-all"
@@ -233,11 +232,11 @@ function DashboardView() {
       )}
 
       {/* Dataset View Modal */}
-      <DatasetView 
-        isOpen={!!viewingFile && !isPreviewLoading} 
-        onClose={() => setViewingFile(null)} 
-        fileData={previewData} 
-        fileName={viewingFile?.name} 
+      <DatasetView
+        isOpen={!!viewingFile && !isPreviewLoading}
+        onClose={() => setViewingFile(null)}
+        fileData={previewData}
+        fileName={viewingFile?.name}
       />
     </div>
   );
@@ -309,19 +308,20 @@ export default function DashboardPage() {
   const handleLogout = () => {
     ['token', 'ea_chatHistory', 'ea_fileMeta', 'ea_uploadedFilePath',
       'ea_fileData', 'ea_suggestedCharts', 'viz_fileMeta', 'viz_uploadedFilePath',
-      'viz_fileData', 'viz_suggestedCharts', 'dashboard_activeTab',
+      'viz_fileData', 'viz_suggestedCharts', 'viz_dataMode', 'dashboard_activeTab',
+      'rg_fileMeta', 'rg_uploadedFilePath', 'rg_fileData', 'rg_reportData',
     ].forEach((key) => localStorage.removeItem(key));
     window.location.href = '/login';
   };
 
   const renderModule = () => {
     switch (activeTab) {
-      case 'dashboard':    return <DashboardView />;
-      case 'assistant':    return <ExcelAssistant />;
-      case 'formula':      return <FormulaGenerator />;
-      case 'report':       return <ReportGeneration />;
-      case 'visualization':return <Visualization />;
-      default:             return <DashboardView />;
+      case 'dashboard': return <DashboardView />;
+      case 'assistant': return <ExcelAssistant />;
+      case 'formula': return <FormulaGenerator />;
+      case 'report': return <ReportGeneration />;
+      case 'visualization': return <Visualization />;
+      default: return <DashboardView />;
     }
   };
 

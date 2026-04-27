@@ -1,10 +1,10 @@
-// controllers/reportController.js
+
 const { executePrompt }               = require("../utils/gemini.js");
 const { getDataFrame, buildAISample } = require("../utils/dataUtils.js");
 const fs        = require('fs');
 const FileModel = require('../models/fileModel');
 
-// AI Business Report Generation
+
 const generateReport = async (req, res) => {
     try {
         const { fileId, filePath } = req.body;
@@ -17,6 +17,12 @@ const generateReport = async (req, res) => {
         }
 
         if (!fs.existsSync(filePath)) return res.status(404).json({ message: "File not found on server." });
+
+        const fileStat = fs.statSync(filePath);
+        const fileSizeMB = fileStat.size / (1024 * 1024);
+        if (fileSizeMB > 5) {
+            return res.status(400).json({ message: "File exceeds 5 MB limit for report generation. Please use a smaller dataset." });
+        }
 
         const { csvData, sheetData } = getDataFrame(filePath);
 

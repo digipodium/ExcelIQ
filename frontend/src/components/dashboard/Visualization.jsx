@@ -53,17 +53,60 @@ const SAMPLE_CHARTS_PRESET = [
   { id:4, title:'Expense Distribution',     type:'doughnut', xAxis:'Month', yAxis:'Expenses',   description:'How expenses are spread across months.' },
 ];
 
+function detectCsvHeader(firstRow, secondRow) {
+  if (!firstRow || !secondRow) return true;
+
+  const isNumeric = (val) => {
+    if (val === null || val === undefined || String(val).trim() === '') return false;
+    return !isNaN(Number(val));
+  };
+  const isText = (val) => {
+    if (val === null || val === undefined || String(val).trim() === '') return false;
+    return isNaN(Number(val));
+  };
+
+  const r1Text = firstRow.filter(isText).length;
+  const r2Text = secondRow.filter(isText).length;
+  const r1Num  = firstRow.filter(isNumeric).length;
+  const r2Num  = secondRow.filter(isNumeric).length;
+
+  if (r1Text > 0 && r1Num === 0 && r2Num > 0) return true;
+
+  const r1Ratio = r1Text / firstRow.length;
+  const r2Ratio = r2Text / secondRow.length;
+  if (r1Ratio > r2Ratio && r1Ratio >= 0.6) return true;
+
+  if (r1Text === r2Text && r1Num === r2Num) return false;
+
+  const allUnique = new Set(firstRow.map(String)).size === firstRow.length;
+  if (allUnique && r1Text >= firstRow.length * 0.5) return true;
+
+  return true;
+}
+
 function parseCsvText(text) {
   const lines = text.trim().split('\n').filter(l => l.trim());
   if (lines.length < 2) return null;
-  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-  const rows = lines.slice(1).map(l =>
-    l.split(',').map(c => {
+
+  const parseRow = (line) =>
+    line.split(',').map(c => {
       const s = c.trim().replace(/^"|"$/g, '');
       const n = parseFloat(s);
       return isNaN(n) ? s : n;
-    })
-  );
+    });
+
+  const allRows = lines.map(parseRow);
+  const hasHeader = detectCsvHeader(allRows[0], allRows[1]);
+
+  let headers, rows;
+  if (hasHeader) {
+    headers = allRows[0].map((h, i) => String(h).trim() || `Column_${i + 1}`);
+    rows = allRows.slice(1);
+  } else {
+    headers = allRows[0].map((_, i) => `Column_${i + 1}`);
+    rows = allRows;
+  }
+
   return { headers, rows };
 }
 

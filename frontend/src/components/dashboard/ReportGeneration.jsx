@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Loader2, Table, FileSpreadsheet, HardDrive, Rows3, Columns3, AlertCircle, Eye, Download, FileText, CheckCircle2, TrendingUp, Lightbulb } from 'lucide-react';
+import { Loader2, Table, FileSpreadsheet, HardDrive, Rows3, Columns3, AlertCircle, Eye, Download, FileText, CheckCircle2, TrendingUp, Lightbulb, RefreshCw } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import DatasetView from './DatasetView';
@@ -28,11 +28,20 @@ export default function ReportGeneration() {
   const isHydrated = useRef(false);
 
   useEffect(() => {
-    setFileMeta(safeGetItem('rg_fileMeta', null));
-    setUploadedFilePath(safeGetItem('rg_uploadedFilePath', null));
-    setFileData(safeGetItem('rg_fileData', { headers: [], rows: [] }));
-    setReportData(safeGetItem('rg_reportData', null));
-    isHydrated.current = true;
+    const meta = safeGetItem('rg_fileMeta', null);
+    const path = safeGetItem('rg_uploadedFilePath', null);
+    const data = safeGetItem('rg_fileData', { headers: [], rows: [] });
+    const report = safeGetItem('rg_reportData', null);
+
+    setFileMeta(meta);
+    setUploadedFilePath(path);
+    setFileData(data);
+    setReportData(report);
+    setTimeout(() => { isHydrated.current = true; }, 0);
+
+    if (meta?.id && path && !report) {
+      generateReport(meta.id, path);
+    }
   }, []);
 
   useEffect(() => {
@@ -141,6 +150,7 @@ export default function ReportGeneration() {
             onUploadSuccess={handleUploadSuccess}
             onFileRemoved={handleFileRemoved}
             persistedFileMeta={fileMeta}
+            maxSizeMB={5}
           />
 
           <div className="flex-1 min-h-0 bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm flex flex-col">
@@ -153,13 +163,24 @@ export default function ReportGeneration() {
                 </div>
               ) : reportData ? (
                 <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-                  {/* Title Area */}
                   <div className="pb-6 border-b border-slate-200">
-                    <div className="flex items-center gap-3 mb-2">
-                       <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
-                         <FileText className="w-5 h-5" />
-                       </div>
-                       <h2 className="text-2xl font-bold text-slate-800">{reportData.title || "Data Analysis Report"}</h2>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
+                          <FileText className="w-5 h-5" />
+                        </div>
+                        <h2 className="text-2xl font-bold text-slate-800">{reportData.title || "Data Analysis Report"}</h2>
+                      </div>
+                      {fileMeta?.id && uploadedFilePath && (
+                        <button
+                          onClick={() => generateReport(fileMeta.id, uploadedFilePath)}
+                          disabled={isGenerating}
+                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold border border-indigo-200 transition-all disabled:opacity-50"
+                        >
+                          <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
+                          Regenerate
+                        </button>
+                      )}
                     </div>
                   </div>
 
@@ -236,7 +257,19 @@ export default function ReportGeneration() {
                 <div className="h-full flex flex-col items-center justify-center text-center">
                   <div className="w-16 h-16 bg-indigo-100 rounded-3xl flex items-center justify-center mb-4"><FileText className="w-8 h-8 text-indigo-600" /></div>
                   <h3 className="text-slate-800 font-bold text-lg mb-2">No Report Found</h3>
-                  <p className="text-slate-500 font-medium max-w-sm text-sm">Upload a dataset, and we'll analyze it to generate a comprehensive AI-driven business report.</p>
+                  <p className="text-slate-500 font-medium max-w-sm text-sm">
+                    {fileMeta ? 'Click below to generate a report from your uploaded file.' : 'Upload a dataset, and we\'ll analyze it to generate a comprehensive AI-driven business report.'}
+                  </p>
+                  {fileMeta?.id && uploadedFilePath && (
+                    <button
+                      onClick={() => generateReport(fileMeta.id, uploadedFilePath)}
+                      disabled={isGenerating}
+                      className="mt-4 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white text-sm font-bold shadow-md hover:shadow-indigo-200 hover:scale-[1.02] transition-all disabled:opacity-50"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isGenerating ? 'animate-spin' : ''}`} />
+                      Generate Report
+                    </button>
+                  )}
                 </div>
               )}
             </div>

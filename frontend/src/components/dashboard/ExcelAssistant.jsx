@@ -41,10 +41,11 @@ export default function ExcelAssistant() {
     setUploadedFilePath(safeGetItem('ea_uploadedFilePath', null));
     setFileData(safeGetItem('ea_fileData', { headers: [], rows: [] }));
     setCleaningSuggestions(safeGetItem('ea_cleaningSuggestions', null));
-    isHydrated.current = true;
+    setTimeout(() => { isHydrated.current = true; }, 0);
   }, []);
 
   useEffect(() => {
+    if (!isHydrated.current) return;
     try { localStorage.setItem('ea_chatHistory', JSON.stringify(chatHistory)); } catch { }
   }, [chatHistory]);
 

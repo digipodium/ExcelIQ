@@ -3,23 +3,21 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast, { Toaster } from 'react-hot-toast';
 import { Loader2 } from 'lucide-react';
-
-// Component imports
-import AdminSidebar  from '@/components/admin/AdminSidebar';
+import AdminSidebar from '@/components/admin/AdminSidebar';
 import AdminOverview from '@/components/admin/AdminOverview';
-import AdminUsers    from '@/components/admin/AdminUsers';
-import AdminContact  from '@/components/admin/AdminContact';
+import AdminUsers from '@/components/admin/AdminUsers';
+import AdminContact from '@/components/admin/AdminContact';
 
 const tabTitles = {
   dashboard: { title: 'System Overview', desc: 'Real-time platform monitoring.' },
-  users:     { title: 'Manage Users', desc: 'Manage platform accounts and roles.' },
-  contact:   { title: 'Contact Queries', desc: 'Handle user support messages and submit internal queries.' },
+  users: { title: 'Manage Users', desc: 'Manage platform accounts and roles.' },
+  contact: { title: 'Contact Queries', desc: 'Handle user support messages and submit internal queries.' },
 };
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [stats, setStats]   = useState({ totalUsers: 0, totalFiles: 0 });
-  const [users, setUsers]   = useState([]);
+  const [stats, setStats] = useState({ totalUsers: 0, totalFiles: 0 });
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Profile states
@@ -50,7 +48,7 @@ export default function AdminDashboard() {
         // Fetch admin details directly from returned users array
         const payload = JSON.parse(atob(token.split('.')[1]));
         const currentAdmin = usersRes.data.find(u => u._id === payload._id);
-        
+
         if (currentAdmin) {
           if (currentAdmin.name) setAdminName(currentAdmin.name);
           if (currentAdmin.email) setAdminEmail(currentAdmin.email);
@@ -76,7 +74,7 @@ export default function AdminDashboard() {
     try {
       const token = localStorage.getItem('token');
       if (!token) return toast.error('Not authenticated');
-      
+
       const payload = JSON.parse(atob(token.split('.')[1]));
       const userId = payload._id;
 
@@ -84,7 +82,7 @@ export default function AdminDashboard() {
 
       toast.loading('Changing password...', { id: 'pwd' });
 
-      await axios.put(`http://localhost:5000/user/update/${userId}`, 
+      await axios.put(`http://localhost:5000/user/update/${userId}`,
         { password: newPassword },
         {
           headers: {
@@ -93,7 +91,6 @@ export default function AdminDashboard() {
           }
         }
       );
-
       toast.success('Password changed successfully!', { id: 'pwd' });
       setIsPasswordModalOpen(false);
       setNewPassword('');
@@ -106,9 +103,9 @@ export default function AdminDashboard() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard': return <AdminOverview stats={stats} users={users} />;
-      case 'users':     return <AdminUsers users={users} setUsers={setUsers} setStats={setStats} />;
-      case 'contact':   return <AdminContact />;
-      default:          return <AdminOverview stats={stats} users={users} />;
+      case 'users': return <AdminUsers users={users} setUsers={setUsers} setStats={setStats} />;
+      case 'contact': return <AdminContact />;
+      default: return <AdminOverview stats={stats} users={users} />;
     }
   };
 
@@ -138,7 +135,7 @@ export default function AdminDashboard() {
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center text-white text-sm font-bold cursor-pointer hover:scale-105 transition-transform uppercase shadow-md">
                     {adminName ? adminName.charAt(0) : (adminEmail ? adminEmail.charAt(0) : 'A')}
                   </div>
-                  
+
                   {/* Dropdown Profile Menu (Hover triggered) */}
                   <div className="absolute right-0 top-full pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                     <div className="w-56 bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
@@ -147,7 +144,7 @@ export default function AdminDashboard() {
                         <p className="text-xs text-slate-500 truncate">{adminEmail || 'admin@exceliq.com'}</p>
                       </div>
                       <div className="p-2">
-                        <button 
+                        <button
                           onClick={() => setIsPasswordModalOpen(true)}
                           className="w-full text-left px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-indigo-600 rounded-lg transition"
                         >
@@ -176,32 +173,32 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">New Password</label>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none" 
+                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                   placeholder="Enter new password"
                 />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase">Confirm Password</label>
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none" 
+                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
                   placeholder="Confirm new password"
                 />
               </div>
               <div className="flex gap-3 mt-6 pt-2">
-                <button 
+                <button
                   onClick={() => setIsPasswordModalOpen(false)}
                   className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-bold text-sm hover:bg-slate-50 transition"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleChangePassword}
                   className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white font-bold text-sm hover:bg-indigo-700 transition"
                 >

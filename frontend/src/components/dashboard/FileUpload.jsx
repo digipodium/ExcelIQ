@@ -14,7 +14,7 @@ const ACCEPTED_MIME = [
   'text/csv',
   'application/csv',
 ];
-const MAX_SIZE_MB = 15;
+const DEFAULT_MAX_SIZE_MB = 15;
 
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`;
@@ -28,7 +28,7 @@ function getFileIcon(name = '') {
   return colors[ext] || '#6366f1';
 }
 
-function DropZone({ dragOver, onDragOver, onDragLeave, onDrop, onBrowse, inputRef, onFileChange }) {
+function DropZone({ dragOver, onDragOver, onDragLeave, onDrop, onBrowse, inputRef, onFileChange, maxSizeMB }) {
   return (
     <div
       className={`relative border-2 border-dashed rounded-[24px] p-12 text-center cursor-pointer transition-all duration-200 outline-none w-full
@@ -69,7 +69,7 @@ function DropZone({ dragOver, onDragOver, onDragLeave, onDrop, onBrowse, inputRe
               <>Drop your spreadsheet here or <span className="text-indigo-500 underline underline-offset-2">browse</span></>
             )}
           </p>
-          <p className="text-xs text-slate-400 mt-1">CSV, XLSX, XLS &bull; Max {MAX_SIZE_MB} MB</p>
+          <p className="text-xs text-slate-400 mt-1">CSV, XLSX, XLS &bull; Max {maxSizeMB} MB</p>
         </div>
 
         <div className="flex flex-wrap justify-center gap-2">
@@ -170,7 +170,7 @@ function FileCard({ file, status, progress, onRemove, onUpload, uploading, sizeD
   );
 }
 
-export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFileMeta = null, className = '' }) {
+export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFileMeta = null, maxSizeMB = DEFAULT_MAX_SIZE_MB, className = '' }) {
   const [file, setFile] = useState(null);
   const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState('idle'); // idle | uploading | done | error
@@ -180,8 +180,8 @@ export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFi
   const validate = useCallback((f) => {
     if (!f) return false;
     const sizeMB = f.size / (1024 * 1024);
-    if (sizeMB > MAX_SIZE_MB) {
-      toast.error(`File too large. Max size is ${MAX_SIZE_MB} MB.`);
+    if (sizeMB > maxSizeMB) {
+      toast.error(`File too large. Max size is ${maxSizeMB} MB.`);
       return false;
     }
     const ext = f.name.split('.').pop()?.toLowerCase();
@@ -263,6 +263,7 @@ export default function FileUpload({ onUploadSuccess, onFileRemoved, persistedFi
           onBrowse={handleBrowse}
           inputRef={inputRef}
           onFileChange={handleFileChange}
+          maxSizeMB={maxSizeMB}
         />
       ) : (
         <FileCard
