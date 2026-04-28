@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   UploadCloud, BarChart3, LineChart, PieChart, Sparkles, Loader2,
   FlaskConical, X, ClipboardList, FileUp, Table2, Wand2,
-  ChevronDown, ChevronUp, Info, RefreshCw
+  ChevronDown, ChevronUp, Info, RefreshCw, Download
 } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -670,6 +670,30 @@ export default function Visualization() {
               </div>
               {activeChart && (
                 <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => {
+                      try {
+                        const canvas = document.querySelector('canvas');
+                        if (canvas) {
+                          const url = canvas.toDataURL('image/png');
+                          const link = document.createElement('a');
+                          link.download = `${activeChart?.title || 'Chart'}.png`;
+                          link.href = url;
+                          link.click();
+                          toast.success('Chart image downloaded!');
+                        } else {
+                          toast.error('Chart canvas not found.');
+                        }
+                      } catch (e) {
+                        toast.error('Failed to download chart.');
+                      }
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-[11px] font-bold border border-emerald-200 transition-all"
+                    title="Download Chart as Image"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    Export Image
+                  </button>
                   {modeBadge && (
                     <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider ${modeBadge.bg} ${modeBadge.text}`}>
                       {modeBadge.label}

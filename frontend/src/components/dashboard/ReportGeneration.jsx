@@ -141,6 +141,53 @@ export default function ReportGeneration() {
     }
   };
 
+  const handleExportPDF = () => {
+    try {
+      const originalTitle = document.title;
+      document.title = `${fileMeta?.name || 'Dataset'}_Report`;
+      
+      // Inject print-specific CSS
+      const printCSS = `
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #report-content-to-export, #report-content-to-export * {
+            visibility: visible;
+          }
+          #report-content-to-export {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            margin: 0;
+            padding: 20px;
+            background: white !important;
+          }
+          /* Hide the buttons during print */
+          [data-html2canvas-ignore="true"] {
+            display: none !important;
+          }
+        }
+      `;
+      const style = document.createElement('style');
+      style.innerHTML = printCSS;
+      document.head.appendChild(style);
+      
+      // Trigger the native print dialog (User selects "Save as PDF")
+      window.print();
+      
+      // Cleanup
+      document.head.removeChild(style);
+      document.title = originalTitle;
+      
+      toast.success('Print dialog opened successfully!');
+    } catch (error) {
+      console.error(error);
+      toast.error('Failed to export PDF');
+    }
+  };
+
   return (
     <div className="h-full flex flex-col gap-5">
       <div className="flex-1 min-h-0 grid lg:grid-cols-3 gap-5">
@@ -162,8 +209,8 @@ export default function ReportGeneration() {
                   <p className="text-slate-400 text-sm max-w-sm">Our AI is analyzing your dataset to produce executive summaries, key findings, and recommendations.</p>
                 </div>
               ) : reportData ? (
-                <div className="space-y-8 animate-in fade-in duration-500 pb-10">
-                  <div className="pb-6 border-b border-slate-200">
+                <div id="report-content-to-export" className="space-y-8 animate-in fade-in duration-500 pb-10 bg-slate-50 p-4 rounded-xl">
+                  <div className="pb-6 border-b border-slate-200" data-html2canvas-ignore="false">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-2xl bg-indigo-100 flex items-center justify-center text-indigo-600 shadow-sm shrink-0">
@@ -171,16 +218,30 @@ export default function ReportGeneration() {
                         </div>
                         <h2 className="text-2xl font-bold text-slate-800">{reportData.title || "Data Analysis Report"}</h2>
                       </div>
-                      {fileMeta?.id && uploadedFilePath && (
-                        <button
-                          onClick={() => generateReport(fileMeta.id, uploadedFilePath)}
-                          disabled={isGenerating}
-                          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold border border-indigo-200 transition-all disabled:opacity-50"
-                        >
-                          <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
-                          Regenerate
-                        </button>
-                      )}
+                      
+                      {/* Buttons hidden during PDF generation automatically if we wanted, but not strictly necessary */}
+                      <div className="flex items-center gap-2" data-html2canvas-ignore="true">
+                        {fileMeta?.id && uploadedFilePath && (
+                          <>
+                            <button
+                              onClick={handleExportPDF}
+                              disabled={isGenerating}
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-600 text-xs font-bold border border-emerald-200 transition-all disabled:opacity-50"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Export PDF
+                            </button>
+                            <button
+                              onClick={() => generateReport(fileMeta.id, uploadedFilePath)}
+                              disabled={isGenerating}
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-600 text-xs font-bold border border-indigo-200 transition-all disabled:opacity-50"
+                            >
+                              <RefreshCw className={`w-3.5 h-3.5 ${isGenerating ? 'animate-spin' : ''}`} />
+                              Regenerate
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 

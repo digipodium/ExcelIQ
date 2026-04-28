@@ -1,7 +1,7 @@
 
-const { executePrompt }               = require("../utils/gemini.js");
+const { executePrompt } = require("../utils/gemini.js");
 const { getDataFrame, buildAISample } = require("../utils/dataUtils.js");
-const fs        = require('fs');
+const fs = require('fs');
 const FileModel = require('../models/fileModel');
 
 
@@ -18,7 +18,7 @@ const suggestChartsFromPreview = async (req, res) => {
 
         // Build a CSV string inline from the preview data
         const headerLine = previewData.headers.join(',');
-        const rowLines   = previewData.rows.map(row =>
+        const rowLines = previewData.rows.map(row =>
             row.map(cell => {
                 const s = String(cell ?? '');
                 return s.includes(',') || s.includes('"') ? `"${s.replace(/"/g, '""')}"` : s;
@@ -63,9 +63,13 @@ const suggestChartsFromPreview = async (req, res) => {
 
         let result = await executePrompt(aiPrompt);
 
+        if (!result) {
+            return res.status(500).json({ message: "AI response failed. Please check your API keys or try again later." });
+        }
+
         let jsonStr = result.trim();
         const firstBracket = jsonStr.indexOf('[');
-        const lastBracket  = jsonStr.lastIndexOf(']');
+        const lastBracket = jsonStr.lastIndexOf(']');
         if (firstBracket !== -1 && lastBracket !== -1) {
             jsonStr = jsonStr.substring(firstBracket, lastBracket + 1);
         }
@@ -134,9 +138,13 @@ const suggestCharts = async (req, res) => {
 
         let result = await executePrompt(aiPrompt);
 
+        if (!result) {
+            return res.status(500).json({ message: "AI response failed. Please check your API keys or try again later." });
+        }
+
         let jsonStr = result.trim();
         const firstBracket = jsonStr.indexOf('[');
-        const lastBracket  = jsonStr.lastIndexOf(']');
+        const lastBracket = jsonStr.lastIndexOf(']');
 
         if (firstBracket !== -1 && lastBracket !== -1) {
             jsonStr = jsonStr.substring(firstBracket, lastBracket + 1);
