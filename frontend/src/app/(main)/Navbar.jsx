@@ -42,7 +42,7 @@ export default function Navbar() {
           {/* Nav Links */}
           <nav className="hidden lg:flex items-center gap-10">
             {[
-              { name: "Product", path: "/overview" },
+              { name: "Features", path: "/overview" },
               { name: "Pricing", path: "/pricing" },
               { name: "About", path: "/about" },
               { name: "Contact", path: "/contact" },
