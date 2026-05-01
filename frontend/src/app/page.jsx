@@ -13,7 +13,6 @@ export const Home = () => {
 
     <div className="relative overflow-hidden bg-gradient-to-br from-slate-50 via-white to-indigo-50">
       <Navbar />
-
       {/* Animated Background Blobs */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-indigo-500 opacity-20 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-purple-500 opacity-20 rounded-full blur-3xl animate-pulse"></div>
